@@ -6,3 +6,4 @@
 - `sources.html` — 镍与不锈钢周报 68 个图表槽位的数据源检索表（`sources.md` 为源文件）
 
 站点：https://amiya866.github.io/nickel-panel/
+
