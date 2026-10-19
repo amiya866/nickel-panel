@@ -1,0 +1,131 @@
+<!DOCTYPE html><html lang="zh"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>镍与不锈钢周报 20261018 · 图表数据源检索表</title>
+<style>
+body{background:#0f1420;color:#dce3f0;font-family:"Microsoft YaHei",sans-serif;max-width:1200px;margin:0 auto;padding:24px;line-height:1.7}
+h1{font-size:22px;color:#fff;border-bottom:2px solid #ffd54f;padding-bottom:8px}
+h2{font-size:18px;color:#ffd54f;margin-top:32px}
+h3{font-size:15px;color:#7fd4c1;margin-top:22px}
+table{border-collapse:collapse;width:100%;font-size:12.5px;margin:10px 0}
+th,td{border:1px solid #2a3450;padding:5px 8px;text-align:left;vertical-align:top}
+th{background:#1a2236;color:#ffd54f;white-space:nowrap}
+tr:nth-child(even) td{background:#141a2b}
+code{background:#232c3d;padding:1px 5px;border-radius:4px;font-size:12px;color:#8fd3ff}
+blockquote{border-left:3px solid #ffd54f;margin:8px 0;padding:6px 14px;background:#1a2236;color:#b8c2d8}
+li{margin:3px 0} li.num{list-style:decimal inside}
+.scrollx{overflow-x:auto}
+a{color:#8fd3ff}
+.back{display:inline-block;margin-bottom:16px;padding:6px 14px;background:#232c3d;border-radius:6px;text-decoration:none}
+</style></head><body>
+<a class="back" href="index.html">← 返回镍×不锈钢研究框架面板</a>
+<h1>镍与不锈钢周报 20261018 · 图表数据源检索表</h1>
+<blockquote>对应文件：<code>镍与不锈钢周报20261018.pptx</code>（34 页，68 个图表槽位）</blockquote>
+<blockquote>本次运行：<code>_ni_weekly_update_report.json</code>（date=20261018）——<b>34 个槽位更新成功、0 失败、34 个槽位保留 2026-10-11 原版 PDF 裁剪</b>。</blockquote>
+<blockquote>管线：<code>_update_ni_weekly.py</code>（Excel 绑定导出）→ <code>_ni_direct_premium.py</code>（P7 升贴水直连）→ <code>_ni_reference_update.py</code>（月差/印尼产量/铬系直连）→ 嵌入模板 → 正文刷新 → PDF。</blockquote>
+<h2>数据源缩写</h2>
+<div class="scrollx"><table>
+<tr><th>缩写</th><th>含义</th><th>路径/通道</th></tr>
+<tr><td>ND</td><td><code>镍数据.xlsx</code></td><td>本目录（只读打开，不保存）</td></tr>
+<tr><td>B01</td><td><code>表01_镍产业数据.xlsx</code></td><td>本目录（只读打开，不保存）</td></tr>
+<tr><td>zhiji</td><td>知几 API 直连序列（含 Mysteel/SMM 镜像口径）</td><td><code>_ni_direct_premium.py</code> / <code>_ni_reference_update.py</code> 内指标 ID</td></tr>
+<tr><td>cnfeol</td><td>铁合金在线镜像库</td><td><code>D:\Kimi\cnfeol_mirror\cnfeol_mirror.db</code>，indicator_id=<code>cv:xxx</code></td></tr>
+<tr><td>sina</td><td>新浪期货逐合约日 K</td><td><code>_ni_reference_update.py</code> 内 <code>shfe_curve()</code></td></tr>
+<tr><td>pdf_crop</td><td>保留原版 PDF 裁剪（未找到同口径数据源，不硬替）</td><td><code>_ni_build\charts_out\</code></td></tr>
+</table></div>
+<h2>一、已更新槽位（34 个）</h2>
+<h3>1. 直连数据源（11 个槽位：zhiji 6 / cnfeol 2 / 多源 1 / sina 2）</h3>
+<div class="scrollx"><table>
+<tr><th>页</th><th>槽位</th><th>图表</th><th>数据源</th><th>指标 ID / 通道</th><th>单位</th><th>最新读数（日期）</th></tr>
+<tr><td>6</td><td>TL</td><td>上期所镍月间结构</td><td>sina</td><td>SHFE 镍逐合约日 K</td><td>元/吨</td><td>2026-10-16</td></tr>
+<tr><td>6</td><td>TR</td><td>伦镍月间结构（0/3/15/27M，5日单图）</td><td>zhiji</td><td>LME 镍 3M + 0-3/3-15/3-27</td><td>美元/吨</td><td>2026-10-15</td></tr>
+<tr><td>7</td><td>TL</td><td>俄镍升贴水</td><td>zhiji</td><td><code>ID00302596</code>（Mysteel 俄罗斯电积镍升贴水）</td><td>元/吨</td><td>250（10-16）</td></tr>
+<tr><td>7</td><td>TR</td><td>金川镍升贴水</td><td>zhiji</td><td><code>s20019092</code>（SMM 1#金川镍沪镍合约升贴水平均价）</td><td>元/吨</td><td>4,750（10-16，周 +14.5%）</td></tr>
+<tr><td>7</td><td>BL</td><td>镍豆升贴水</td><td>zhiji</td><td><code>ID00302595</code>（Mysteel BHP 镍豆升贴水）</td><td>元/吨</td><td>-200（10-16）</td></tr>
+<tr><td>11</td><td>TR</td><td>印尼精炼镍产量</td><td>zhiji</td><td><code>ID02026189</code>（月度季节图 2023-2026）</td><td>金属吨</td><td>8,000（2026-09）</td></tr>
+<tr><td>22</td><td>TR</td><td>不锈钢结构（期限结构）</td><td>sina</td><td>SHFE 不锈钢逐合约日 K</td><td>元/吨</td><td>2026-10-16</td></tr>
+<tr><td>25</td><td>TL</td><td>铬矿价格（块矿 36-38%Cr 南非）</td><td>zhiji</td><td><code>ID00258454</code>（季节图 2021-2026）</td><td>元/干吨度</td><td>2026-10-16</td></tr>
+<tr><td>25</td><td>TR</td><td>高碳铬铁价格（内蒙古）</td><td>cnfeol</td><td><code>cv:282</code></td><td>元/50基吨</td><td>7,675（10-09）</td></tr>
+<tr><td>25</td><td>BR</td><td>高碳铬铁价格（钢招价）</td><td>cnfeol</td><td><code>cv:878</code>（青山采购价，月度，2020-2026）</td><td>元/50基吨</td><td>7,795（2026-10）</td></tr>
+<tr><td>25</td><td>BL</td><td>铬矿价格：不同品位</td><td>多源</td><td>zhiji <code>ID00258454</code>（南非36-38%）+ cnfeol <code>cv:457</code>（南非40-42%）/ <code>cv:185</code>（土耳其46-48%）/ <code>cv:184</code>（土耳其40-42%），2025 起日线</td><td>元/干吨度</td><td>2026-10-16</td></tr>
+</table></div>
+<p>注：P7 三图在 <code>_ni_bindings.json</code> 中留有 Excel 兜底绑定（ND「镍」!B6 / R7 / AD7），实际由 <code>_ni_direct_premium.py</code> 的 zhiji 直连覆盖同槽位；纵轴=近 183 天 1%–99% 分位+12% 余量，防 2022-03 极端值压扁近端。</p>
+<h3>2. Excel 原生图表绑定导出（23 个槽位）</h3>
+<div class="scrollx"><table>
+<tr><th>页</th><th>槽位</th><th>图表</th><th>工作簿</th><th>sheet</th><th>锚点</th><th>单位（换算）</th><th>最新读数</th></tr>
+<tr><td>11</td><td>TL</td><td>中国精炼镍产量</td><td>B01</td><td>周报页</td><td>B343</td><td>金属吨</td><td>28,375（月度）</td></tr>
+<tr><td>11</td><td>BL</td><td>中国电解镍净进口量</td><td>B01</td><td>周报页</td><td>E387</td><td>万金属吨（×0.0001）</td><td>1.43 万金属吨（月度）</td></tr>
+<tr><td>12</td><td>T0</td><td>镍社会库存</td><td>ND</td><td>镍</td><td>BG79</td><td>吨（周度季节）</td><td>115,983</td></tr>
+<tr><td>12</td><td>T1</td><td>镍板库存</td><td>ND</td><td>镍</td><td>CI70</td><td>吨（周度季节）</td><td>115,583</td></tr>
+<tr><td>12</td><td>B1</td><td>沪镍仓单</td><td>ND</td><td>NI</td><td>KA12</td><td>吨</td><td>94,059</td></tr>
+<tr><td>13</td><td>TR</td><td>LME 镍库存</td><td>ND</td><td>汇总-盘面</td><td>M54</td><td>吨（日度）</td><td>282,864</td></tr>
+<tr><td>13</td><td>BL</td><td>LME 镍库存分布：洲</td><td>B01</td><td>LME库存</td><td>AB1</td><td>吨（面积图，2020 起）</td><td>—</td></tr>
+<tr><td>14</td><td>TR</td><td>中国硫酸镍企业开工率</td><td>ND</td><td>硫酸镍</td><td>Z39</td><td>%（月度）</td><td>62.05%</td></tr>
+<tr><td>16</td><td>TL</td><td>中国动力电池产量：三元</td><td>B01</td><td>中国新能源</td><td>AF16</td><td>MWh（月度季节）</td><td>41,200</td></tr>
+<tr><td>16</td><td>TR</td><td>中国动力电池产量：磷酸铁锂</td><td>B01</td><td>中国新能源</td><td>AM16</td><td>MWh</td><td>195,300</td></tr>
+<tr><td>16</td><td>BL</td><td>中国动力电池装车量：三元</td><td>B01</td><td>中国新能源</td><td>BI1</td><td>MWh（×1000，源为 GWh）</td><td>11.0 GWh</td></tr>
+<tr><td>16</td><td>BR</td><td>中国动力电池装车量：磷酸铁锂</td><td>B01</td><td>中国新能源</td><td>BQ1</td><td>MWh（×1000）</td><td>67.6 GWh</td></tr>
+<tr><td>24</td><td>TL</td><td>镍铁价格（江苏，7%≤Ni≤13%）</td><td>ND</td><td>汇总-镍</td><td>M28</td><td>元/镍点（日度）</td><td>1,055</td></tr>
+<tr><td>27</td><td>TL</td><td>中国高碳铬铁产量</td><td>B01</td><td>周报页</td><td>A584（+补 2021：铬铁!B48:B59/D48:D59）</td><td>万吨（月度季节）</td><td>97.38</td></tr>
+<tr><td>27</td><td>TR</td><td>高碳铬铁进口量</td><td>B01</td><td>周报页</td><td>E584</td><td>万吨（月度）</td><td>15.76</td></tr>
+<tr><td>28</td><td>TL</td><td>中国镍铁产量</td><td>B01</td><td>中国平衡（NPI）</td><td>Q16（+补 2021：B264:B275/K264:K275）</td><td>万金属吨（×0.0001）</td><td>2.72 万金属吨</td></tr>
+<tr><td>28</td><td>BL</td><td>印尼镍铁产量</td><td>B01</td><td>中国平衡（NPI）</td><td>Q1（+补 2021：B264:B275/D264:D275）</td><td>万金属吨（×0.0001）</td><td>14.90 万金属吨</td></tr>
+<tr><td>28</td><td>BR</td><td>镍铁库存</td><td>B01</td><td>中国平衡（NPI）</td><td>AY16（+补 2021：B264:B275/AF264:AF275）</td><td>万金属吨（×0.0001）</td><td>0.35 万金属吨</td></tr>
+<tr><td>29</td><td>TL</td><td>不锈钢粗钢产量：300系（中国）</td><td>B01</td><td>中国平衡SS</td><td>P16（+补 2021：B201:B212/G201:G212）</td><td>万吨（×0.0001）</td><td>181.0 万吨</td></tr>
+<tr><td>29</td><td>TR</td><td>不锈钢产量：300系（印尼）</td><td>B01</td><td>中国平衡SS</td><td>J16</td><td>万吨（×0.0001）</td><td>40.0 万吨</td></tr>
+<tr><td>29</td><td>BL</td><td>不锈钢进口量</td><td>B01</td><td>周报页</td><td>A619（+补 2021：中国平衡SS!B201:B212/P201:P212）</td><td>万吨（×0.0001）</td><td>14.09 万吨</td></tr>
+<tr><td>29</td><td>BR</td><td>不锈钢出口量</td><td>B01</td><td>周报页</td><td>E619（+补 2021：中国平衡SS!B201:B212/Q201:Q212）</td><td>万吨（×0.0001）</td><td>44.57 万吨</td></tr>
+<tr><td>30</td><td>TL</td><td>不锈钢库存：300系（总）</td><td>B01</td><td>SS库存</td><td>R16</td><td>吨（×10000，周度季节，x 轴=第 N 周）</td><td>63.86 万吨</td></tr>
+</table></div>
+<p>绑定通用规则（<code>_ni_bindings.json</code>）：<code>keep_years</code> 隐藏多余年度系列；<code>add_series</code> 从相邻年度数据块补系列（仅改内存不保存源表）；<code>value_scale</code> 还原原版轴量级；<code>palette</code>/<code>series_colors</code> 统一原版配色；2026 年曲线加粗。</p>
+<h2>二、保留原版 PDF 裁剪槽位（34 个，未找到同口径数据源不硬替）</h2>
+<div class="scrollx"><table>
+<tr><th>页</th><th>槽位</th><th>图表</th><th>备注（chart_map 口径线索）</th></tr>
+<tr><td>6</td><td>BL</td><td>LME C-3M 升贴水</td><td>季节性 2021-2026，轴 -400~200 美元/吨</td></tr>
+<tr><td>6</td><td>BR</td><td>不同镍产品折镍价</td><td>3 系列：镍铁折镍价/硫酸镍折镍价/纯镍，2023-2026</td></tr>
+<tr><td>8</td><td>TL</td><td>硫酸镍价格</td><td>季节性 2022-2026</td></tr>
+<tr><td>8</td><td>TR</td><td>高冰镍折扣系数</td><td>季节性 2022-2026，%</td></tr>
+<tr><td>8</td><td>BL</td><td>MHP 镍折扣系数</td><td>季节性 2022-2026，轴 60~100</td></tr>
+<tr><td>8</td><td>BR</td><td>MHP 钴折扣系数</td><td>候选：MHP/硫酸镍两 sheet，未核实</td></tr>
+<tr><td>9</td><td>TL</td><td>三元前驱体价格</td><td>线性 2021-2026</td></tr>
+<tr><td>9</td><td>TR</td><td>三元前驱体价格季节性：622</td><td>候选：前驱体/汇总-新能源/B01 硫酸镍!AL1 附近</td></tr>
+<tr><td>9</td><td>BL</td><td>三元正极价格</td><td>线性 2021-2026，图例 523/622/811</td></tr>
+<tr><td>9</td><td>BR</td><td>三元正极价格季节性：622</td><td>季节性 2021-2026</td></tr>
+<tr><td>12</td><td>T2</td><td>镍豆库存</td><td>⚠ 源数据停 2026-08-14（映射待排查）</td></tr>
+<tr><td>12</td><td>B0</td><td>保税区库存</td><td>同上停更风险</td></tr>
+<tr><td>13</td><td>TL</td><td>镍全球显性库存</td><td>季节性 2022-2026</td></tr>
+<tr><td>13</td><td>BR</td><td>LME 镍库存分布：仓库</td><td>—</td></tr>
+<tr><td>14</td><td>TL</td><td>中国硫酸镍产量</td><td>季节性，轴 10000~70000 金属吨</td></tr>
+<tr><td>14</td><td>BL</td><td>中国硫酸镍进口量</td><td>2021-2026，注意含镍量口径</td></tr>
+<tr><td>14</td><td>BR</td><td>中国硫酸镍出口量</td><td>季节性 2021-2026</td></tr>
+<tr><td>15</td><td>TL</td><td>中国冰镍进口量</td><td>季节性，万金属吨</td></tr>
+<tr><td>15</td><td>TR</td><td>中国冰镍进口量：自印尼</td><td>G91 为印尼出口镍锍实物吨口径，注意比对轴</td></tr>
+<tr><td>15</td><td>BL</td><td>印尼冰镍产量（高冰镍+低冰镍）</td><td>万金属吨</td></tr>
+<tr><td>15</td><td>BR</td><td>印尼冰镍产量（分品位）</td><td>线性 2020/01 起，总量/低冰镍/高冰镍</td></tr>
+<tr><td>17</td><td>L</td><td>新能源车产量</td><td>万辆，季节性 2022-2026</td></tr>
+<tr><td>17</td><td>R</td><td>新能源车销量</td><td>万辆，轴 0~160</td></tr>
+<tr><td>22</td><td>TL</td><td>不锈钢现货基价：无锡</td><td>热轧 304 无锡</td></tr>
+<tr><td>22</td><td>BL</td><td>不锈钢基差</td><td>线性 2021-2026</td></tr>
+<tr><td>22</td><td>BR</td><td>不锈钢冷热轧价差</td><td>—</td></tr>
+<tr><td>23</td><td>TL</td><td>菲律宾镍矿价格（1.5%）</td><td>美元/湿吨季节性；D1 若 vsLME 双轴则不匹配</td></tr>
+<tr><td>23</td><td>TR</td><td>印尼镍矿价格（HPM，1.6%）</td><td>季节性</td></tr>
+<tr><td>23</td><td>BL</td><td>菲律宾镍矿价格：不同品位</td><td>多品位多系列，注意美元/湿吨 vs 元/吨车板价</td></tr>
+<tr><td>24</td><td>TR</td><td>镍铁理论利润（RKEF，山东）</td><td>元/镍点季节性；双轴候选不匹配则裁剪</td></tr>
+<tr><td>28</td><td>TR</td><td>镍铁进口量</td><td>PDF 轴 0~120 万实物吨→优先 E284 实物吨口径</td></tr>
+<tr><td>30</td><td>TR</td><td>不锈钢库存：300系（冷轧）</td><td>—</td></tr>
+<tr><td>30</td><td>BL</td><td>不锈钢库存：300系（热轧）</td><td>—</td></tr>
+<tr><td>30</td><td>BR</td><td>不锈钢仓单</td><td>—</td></tr>
+</table></div>
+<h2>三、正文与封面刷新（非图表槽位）</h2>
+<div class="scrollx"><table>
+<tr><th>位置</th><th>内容</th><th>数据源</th></tr>
+<tr><td>封面</td><td>报告日期</td><td>运行参数 <code>--date</code></td></tr>
+<tr><td>P4 / P5 / P22 正文</td><td>沪镍/不锈钢最新价与周涨跌</td><td>zhiji 有效交易日行情（剔除周末/未来 bar）：NI 115,240（周 -3.24%）、SS 13,215（周 -2.47%）@2026-10-16</td></tr>
+<tr><td>P4 / P5 / P22 正文</td><td>库存统计</td><td>各图表未换算源值（<code>stock_stats</code>，避免重复换算）</td></tr>
+<tr><td>P4 表格顶部 / P7 修复</td><td>版式对齐</td><td><code>_ni_reference_update.py</code>（fix_slide4 / fix_caption）</td></tr>
+</table></div>
+<h2>四、新增槽位入库流程（维护提示）</h2>
+<li class="num">候选图先经 <code>_ni_extra_review.py</code> 小批量导出，与 <code>_ni_build\ref\</code> 原版裁剪比对系列/年份/粒度/单位/曲线；</li>
+<li class="num">确认同源后写入 <code>_ni_bindings.json</code>（Excel 图）或 <code>_ni_direct_premium.py</code> / <code>_ni_reference_update.py</code>（直连图）；</li>
+<li class="num">重跑 <code>_update_ni_weekly.py</code>，核对 <code>_ni_weekly_update_report.json</code> 与 <code>_ni_build\weekly_check\</code> 目检 PNG。</li>
+<p style="margin-top:40px;color:#667;font-size:12px">源文件：sources.md（本仓库内）· 生成于 2026-10-19</p>
+</body></html>
