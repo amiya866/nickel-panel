@@ -226,7 +226,11 @@ class Build:
                                                ("SS", "overview_ss", "ss", "不锈钢主连"),
                                                ("CU", "copper", None, "沪铜主连")]:
             try:
-                rows = self.guan(symbol)
+                today = dt.date.today().isoformat()
+                rows = [row for row in self.guan(symbol)
+                        if row[0] <= today and dt.date.fromisoformat(row[0]).weekday() < 5]
+                if not rows:
+                    raise RuntimeError(f"guan {symbol} 无有效交易日")
                 self.series[symbol] = {date: value for date, value, _ in rows}
                 if key != "copper":
                     self.put(key, self.direct_chart(self.series[symbol], name), {"type": "zhiji-guan", "symbol": symbol})
@@ -239,7 +243,6 @@ class Build:
             self.series["LME"] = points
             chart = self.direct_chart(points, "LME镍3M", limit=500)
             self.put("overview_lme", chart, {"type": "zhiji", "indicator": "FU00014810"})
-            self.put("lme03", chart, {"type": "zhiji", "indicator": "FU00014810"})
             date = max(points)
             self.latest["lme"] = [date, points[date]]
         except Exception as error:
@@ -366,6 +369,8 @@ class Build:
         try:
             price = self.zhiji("FU00014810", "2026-01-01")
             spread03 = self.zhiji("a10018357", "2026-01-01")
+            self.put("lme03", self.direct_chart(spread03, "LME镍0-3升贴水"),
+                     {"type": "zhiji", "indicator": "a10018357", "unit": "美元/吨"})
             spread15 = self.zhiji("j02797786", "2026-01-01")
             spread27 = self.zhiji("j02797787", "2026-01-01")
             common = sorted(set(price) & set(spread03) & set(spread15) & set(spread27))[-5:]
@@ -400,10 +405,10 @@ class Build:
                     rows.append((date.strftime("%Y-%m-%d"), integrated, npi, scrap))
             rows = rows[-600:]
             self.put("cost_ss_profit", {"labels": [r[0] for r in rows], "datasets": [
-                {"label": "一体化利润率", "data": [r[1] for r in rows], "borderColor": COLORS[0]},
-                {"label": "高镍铁利润率", "data": [r[2] for r in rows], "borderColor": COLORS[1]},
-                {"label": "废不锈钢利润率", "data": [r[3] for r in rows], "borderColor": COLORS[2]},
-            ]}, {"type": "B01", "sheet": "SS利润", "columns": ["AO", "AQ", "AS"], "unit": "比率"})
+                {"label": "一体化利润率", "data": [r[1] * 100 if r[1] is not None else None for r in rows], "borderColor": COLORS[0]},
+                {"label": "高镍铁利润率", "data": [r[2] * 100 if r[2] is not None else None for r in rows], "borderColor": COLORS[1]},
+                {"label": "废不锈钢利润率", "data": [r[3] * 100 if r[3] is not None else None for r in rows], "borderColor": COLORS[2]},
+            ]}, {"type": "B01", "sheet": "SS利润", "columns": ["AO", "AQ", "AS"], "unit": "%"})
         finally:
             workbook.close()
 
@@ -451,8 +456,13 @@ class Build:
         workbook = load_workbook(B01, read_only=True, data_only=True)
         try:
             rows = []
-            for row in workbook["中国平衡（NPI）"].iter_rows(min_row=250, min_col=2, max_col=16, values_only=True):
-                date, supply, demand = row[0], number(row[11]), number(row[14])
+            sheet = workbook["中国平衡（NPI）"]
+            header_rows = list(sheet.iter_rows(min_row=31, max_row=32, min_col=2, max_col=34, values_only=True))
+            headers = [top or sub for top, sub in zip(*header_rows)]
+            supply_col = headers.index("印尼+中国NPI产量")
+            demand_col = headers.index("表观消费")
+            for row in sheet.iter_rows(min_row=250, min_col=2, max_col=34, values_only=True):
+                date, supply, demand = row[0], number(row[supply_col]), number(row[demand_col])
                 if isinstance(date, (dt.date, dt.datetime)) and None not in (supply, demand):
                     supply, demand = supply * 0.0001, demand * 0.0001
                     if supply == demand == 0:
@@ -470,7 +480,7 @@ class Build:
                         continue
                     rows.append((date.strftime("%Y-%m"), supply, demand, supply - demand))
             rows = rows[-36:]
-            forecast_start = next((label for label, _, _, _ in rows if label >= "2026-10"), None)
+            forecast_start = next((label for label, _, _, _ in rows if label >= "2026-09"), None)
             result["refined"] = self.balance_block(rows, forecast_start)
         except Exception as error:
             self.warn("B01月度平衡", error)
@@ -644,6 +654,7 @@ def main():
         "projectTotals": {"highCount": sum(p["certaintyClass"] == "high" for p in projects),
                           "inc26": sum(p["inc26"] for p in projects), "inc27": sum(p["inc27"] for p in projects)},
         "monthlyBalance": build.load_balance(), "costSamples": build.load_cost_samples(),
+        "globalBalanceBase": 0.7, "intermediateConversion": 1.0,
         "companyElasticity": elasticity,
         "financial": {"path": FINANCIAL.as_posix(), "projects": len(projects), "elasticityRows": len(elasticity),
                       "latestPeriod": "2026Q2"},
