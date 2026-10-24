@@ -1,0 +1,13 @@
+{
+  "name": "镍市瞭望｜全球镍与不锈钢产业监测台",
+  "short_name": "镍市瞭望",
+  "description": "镍与不锈钢价格、供需、库存、平衡、成本和技术分析面板",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#081018",
+  "theme_color": "#071735",
+  "icons": [
+    {"src": "assets/ni-insight-192.png", "sizes": "192x192", "type": "image/png"},
+    {"src": "assets/ni-insight-512.png", "sizes": "512x512", "type": "image/png"}
+  ]
+}

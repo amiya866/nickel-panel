@@ -1,9 +1,12 @@
-name: Deploy Pages
+name: Build snapshots and deploy Pages
 on:
   push:
     branches: [main]
+  schedule:
+    - cron: "*/5 * * * *"
   workflow_dispatch:
 permissions:
+  contents: write
   pages: write
   id-token: write
 concurrency:
@@ -17,6 +20,22 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Refresh public nickel snapshots
+        env:
+          ZHIJI_API_KEY: ${{ secrets.ZHIJI_API_KEY }}
+        run: |
+          python scripts/fetch_quotes.py
+          python scripts/build_technical_snapshot.py
+      - name: Commit refreshed snapshots
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add quotes.json technical.json
+          git diff --cached --quiet || git commit -m "Refresh nickel market snapshots"
+          git push
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:

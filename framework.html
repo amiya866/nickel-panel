@@ -1,0 +1,1230 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>镍与不锈钢研究框架面板</title>
+<style>
+  :root{--bg:#0e1117;--card:#171c26;--card2:#1d2431;--line:#2a3242;--txt:#dfe6f0;--dim:#8b98ab;
+        --ni:#4fc3f7;--ss:#ffb74d;--up:#ef5350;--dn:#26a69a;--warn:#ffd54f;--acc:#7c4dff}
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{background:var(--bg);color:var(--txt);font:14px/1.7 "Microsoft YaHei",sans-serif;padding:20px;max-width:1440px;margin:0 auto}
+  h1{font-size:24px;margin-bottom:4px}
+  h1 .ni{color:var(--ni)} h1 .ss{color:var(--ss)}
+  .sub{color:var(--dim);margin-bottom:18px;font-size:13px}
+  .tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;position:sticky;top:0;background:var(--bg);padding:8px 0;z-index:9;border-bottom:1px solid var(--line)}
+  .tab{padding:6px 16px;border-radius:16px;background:var(--card);border:1px solid var(--line);cursor:pointer;color:var(--dim);font-size:13px}
+  .tab.on{background:var(--acc);color:#fff;border-color:var(--acc)}
+  .sec{display:none}.sec.on{display:block}
+  .grid{display:grid;gap:12px}
+  .g2{grid-template-columns:1fr 1fr}.g3{grid-template-columns:1fr 1fr 1fr}.g4{grid-template-columns:repeat(4,1fr)}
+  @media(max-width:1000px){.g3,.g4{grid-template-columns:1fr 1fr}.g2{grid-template-columns:1fr}}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
+  .card h3{font-size:15px;margin-bottom:8px;color:var(--ni)}
+  .card.ss h3{color:var(--ss)}
+  .card h4{font-size:13px;color:var(--warn);margin:10px 0 4px}
+  .kpi{font-size:22px;font-weight:700}
+  .kpi small{font-size:12px;color:var(--dim);font-weight:400}
+  table{width:100%;border-collapse:collapse;font-size:12.5px}
+  th,td{padding:5px 8px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+  th{color:var(--dim);font-weight:400;white-space:nowrap}
+  td.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+  .mini td,.mini th{padding:3px 6px;font-size:12px}
+  .tag{display:inline-block;padding:1px 8px;border-radius:8px;font-size:11px;margin-right:4px}
+  .t-ni{background:#12303f;color:var(--ni)} .t-ss{background:#3a2a12;color:var(--ss)}
+  .t-ok{background:#0f2e25;color:var(--dn)} .t-warn{background:#3a3312;color:var(--warn)} .t-bad{background:#3a1616;color:var(--up)}
+  .flow{display:flex;align-items:stretch;gap:0;flex-wrap:wrap;margin:8px 0}
+  .node{background:var(--card2);border:1px solid var(--line);border-radius:8px;padding:8px 12px;font-size:12.5px;min-width:130px}
+  .node b{display:block;font-size:13px}
+  .node .pct{color:var(--warn)}
+  .arr{align-self:center;color:var(--dim);padding:0 6px;font-size:16px}
+  ul{padding-left:18px} li{margin-bottom:5px}
+  .dim{color:var(--dim)} .small{font-size:12px}
+  .asof{color:var(--dim);font-size:11px;font-weight:400}
+  .up{color:var(--up)} .dn{color:var(--dn)}
+  .contra{border-left:3px solid var(--up);padding-left:12px;margin-bottom:14px}
+  .contra.mid{border-left-color:var(--warn)}
+  .contra b.ttl{color:#fff}
+  .foot{margin-top:24px;color:var(--dim);font-size:12px;border-top:1px solid var(--line);padding-top:10px}
+  /* --- 跳转导航 --- */
+  .subnav{position:sticky;top:52px;background:var(--bg);padding:6px 0;z-index:8;display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+  .subnav a{padding:2px 12px;border-radius:12px;background:var(--card2);border:1px solid var(--line);color:var(--dim);font-size:12px;text-decoration:none}
+  .subnav a:hover{color:var(--ni);border-color:var(--ni)}
+  .card,.anchor{scroll-margin-top:110px}
+  #topBtn{position:fixed;right:22px;bottom:22px;z-index:20;background:var(--card2);border:1px solid var(--line);color:var(--dim);
+          border-radius:50%;width:42px;height:42px;cursor:pointer;font-size:18px;display:none}
+  #topBtn:hover{color:var(--ni);border-color:var(--ni)}
+  /* --- 行情复盘时间线 --- */
+  .stage{border-left:3px solid var(--acc);padding:2px 0 2px 14px;margin-bottom:16px;position:relative}
+  .stage::before{content:"";position:absolute;left:-6px;top:8px;width:9px;height:9px;border-radius:50%;background:var(--acc)}
+  .stage.bear{border-color:var(--up)} .stage.bear::before{background:var(--up)}
+  .stage.bull{border-color:var(--dn)} .stage.bull::before{background:var(--dn)}
+  .stage .yr{color:var(--warn);font-weight:700;font-size:14px}
+  .stage .px{font-size:12px;color:var(--dim);margin-left:8px}
+  /* --- 平衡表工坊 --- */
+  .formula{background:var(--card2);border:1px dashed var(--warn);border-radius:8px;padding:8px 14px;font-family:Consolas,monospace;font-size:13px;margin:8px 0}
+  .btable td,.btable th{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+  .btable td:first-child,.btable th:first-child{text-align:left}
+  .btable tr.hl td{background:#232c3d;font-weight:700}
+  .scrollx{overflow-x:auto}
+  .costbar{height:8px;border-radius:4px;background:linear-gradient(90deg,#26a69a,#ffd54f,#ef5350);margin:4px 0 2px}
+</style>
+</head>
+<body>
+<h1><span class="ni">镍</span> × <span class="ss">不锈钢</span> 研究框架面板</h1>
+<div class="sub">永安期货研究中心 · 全景细化版 2026-10-19 · 读数逐项标注日期（镜像：Mysteel 至 10-16 / SMM hq 至 10-16 / cnfeol 至 10-08~09；CRU 展望 2026-09 版；CRU 成本 2026Q3 版）· 核心原则：<b>边际看印尼</b> · <a href="sources.html" style="color:#ffd54f">📑 周报图表数据源检索表 →</a></div>
+
+<div class="tabs">
+  <div class="tab on" data-s="chain">产业链全景</div>
+  <div class="tab" data-s="review">行情复盘</div>
+  <div class="tab" data-s="price">价格与价差</div>
+  <div class="tab" data-s="supply">供应端</div>
+  <div class="tab" data-s="demand">需求端</div>
+  <div class="tab" data-s="inv">库存明细</div>
+  <div class="tab" data-s="chrome">铬系辅料</div>
+  <div class="tab" data-s="cost">成本曲线</div>
+  <div class="tab" data-s="global">全球供需展望</div>
+  <div class="tab" data-s="balance">平衡表工坊</div>
+  <div class="tab" data-s="contra">主要矛盾</div>
+  <div class="tab" data-s="collect">数据采集矩阵</div>
+  <div class="tab" data-s="cal">跟踪日历</div>
+</div>
+
+<!-- ============ 产业链全景 ============ -->
+<div class="sec on" id="s-chain">
+  <div class="subnav">
+    <a href="#chain-flow">三条产品线</a><a href="#chain-kpi">体量速览</a><a href="#" data-tab="review">→ 行情复盘</a><a href="#" data-tab="balance">→ 平衡表工坊</a>
+  </div>
+  <div class="card" id="chain-flow">
+    <h3>三条产品线：矿 → 中间品 → 终端</h3>
+    <h4>① 不锈钢线（红土镍矿→NPI→300系）——镍需求的基本盘</h4>
+    <div class="flow">
+      <div class="node"><b>红土镍矿</b>菲律宾+印尼<span class="pct">印尼储量/产量全球第一</span><br><span class="asof">菲矿1.5% CIF 60.5美元/湿吨(10-16)</span></div><div class="arr">→</div>
+      <div class="node"><b>NPI/镍铁</b>印尼产量约为中国6倍<span class="pct">中国高镍铁9月2.13万金属吨 · 印尼约14.9万金属吨/月</span><br><span class="asof">NPI指数1024.8元/镍点(10-16)</span></div><div class="arr">→</div>
+      <div class="node"><b>不锈钢300系</b>中国9月181万吨·印尼40万吨/月<span class="pct">占镍需求约2/3</span><br><span class="asof">SS 13,215元/吨(10-16,周-2.5%)</span></div><div class="arr">+</div>
+      <div class="node"><b>铬矿/铬铁</b>南非/土耳其矿→高碳铬铁<span class="pct">辅料线</span><br><span class="asof">高铬内蒙7,550元/50基吨(10-09)</span></div>
+    </div>
+    <h4>② 新能源线（HPAL/RKEF→MHP/高冰镍→硫酸镍→三元）</h4>
+    <div class="flow">
+      <div class="node"><b>印尼红土镍矿</b>HPAL 湿法 / RKEF 火法<br><span class="asof">内贸火法1.6% 到港57.1美元(10-16)</span></div><div class="arr">→</div>
+      <div class="node"><b>MHP / 高冰镍</b>折扣系数定价<span class="pct">MHP系数77.5%(10-16) · MHP FOB 12,917美元/镍吨</span></div><div class="arr">→</div>
+      <div class="node"><b>硫酸镍</b>中国9月金属产量4.74万吨<span class="pct">开工率62% · 电池级28,375元/吨(10-16)</span></div><div class="arr">→</div>
+      <div class="node"><b>三元前驱体→正极→电池</b>523/622/811<span class="pct">三元占电池产量份额仅17%</span><br><span class="asof">9月三元41.2GWh vs 铁锂195.3GWh</span></div><div class="arr">→</div>
+      <div class="node"><b>新能源车</b>月销峰值≈160万辆</div>
+    </div>
+    <h4>③ 精炼镍线（硫化矿/镍锍→一级镍→电镀/合金/特钢）</h4>
+    <div class="flow">
+      <div class="node"><b>硫化镍矿/镍锍</b>俄罗斯Nornickel·加拿大Vale·PTVI</div><div class="arr">→</div>
+      <div class="node"><b>精炼镍/一级镍</b>中国9月产量2.87万吨<span class="pct">Nornickel 2025≈19.9万吨</span><br><span class="asof">SMM 1#电解镍117,450元/吨(10-16)</span></div><div class="arr">→</div>
+      <div class="node"><b>电镀/合金/特钢/铸造</b>刚需为主<span class="pct">合计约15-20%</span><br><span class="asof">电镀级硫酸镍33,000元/吨(10-16)</span></div>
+    </div>
+    <p class="small dim">比价锚：「镍铁折镍价 / 硫酸镍折镍价 / 纯镍」三线对比（元/金属吨）= 产业链利润转移的核心观察图。NPI↔高冰镍转化窗口决定两条线的边际切换。</p>
+  </div>
+  <div class="grid g4" style="margin-top:12px" id="chain-kpi">
+    <div class="card"><h3>全球镍供应体量</h3><div class="kpi">≈391.8<small> 万吨（2025，CRU精炼镍口径）</small></div><p class="small dim">2026E 供应不增反降至 388.7 万吨（RKAB 收紧）——CRU 9月版最重要的边际变化</p></div>
+    <div class="card"><h3>LME镍库存</h3><div class="kpi">28.0<small> 万吨（10-16，Mysteel日度）</small></div><p class="small dim">9/25 创 28.5 万吨年内新高后小幅回落；LME镍场外 15,730 美元（10-07）</p></div>
+    <div class="card ss"><h3>不锈钢粗钢产量</h3><div class="kpi">309<small> 万吨（9月，33家）·300系181万吨</small></div><p class="small dim">月度产能 465 万吨；佛山+无锡库存 72.97 万吨（10-16）</p></div>
+    <div class="card"><h3>成本曲线边际锚</h3><div class="kpi">7.07<small> 美元/磅 C1 中位数（CRU 2026Q3）</small></div><p class="small dim">≈15,600 美元/吨；p90=8.08（≈17,800）；现价已贴近边际成本区</p></div>
+  </div>
+</div>
+
+<!-- ============ 行情复盘 2019-2026 ============ -->
+<div class="sec" id="s-review">
+  <div class="subnav">
+    <a href="#rv-tl">八阶段时间线</a><a href="#rv-year">逐年高低点</a><a href="#rv-lesson">复盘要点</a>
+  </div>
+  <div class="card" id="rv-tl">
+    <h3>镍 × 不锈钢行情八阶段（2019 至今）——价格锚=沪镍/沪不锈钢主力连续（新浪），年均=LME Cash（CRU）</h3>
+
+    <div class="stage bull">
+      <span class="yr">① 2019 印尼禁矿脉冲</span><span class="px">沪镍 86,080(1/3)→149,190(9/3)，+73% · LME年均 13,935</span>
+      <ul class="small">
+        <li><b>驱动</b>：年初全球增长担忧+印尼配额出口放量砸出低点；8 月底印尼官宣 2020/1/1 起提前禁矿（原 2022），9/3 脉冲见顶</li>
+        <li><b>产业背景</b>：中国 NPI 依赖进口矿，禁矿=原料逻辑重估；但港口库存+菲矿替代使「禁矿≠短缺」，Q4 回落两成</li>
+        <li><b>不锈钢</b>：SS 期货 2019-09-25 上市（开盘 15,090），年末淡至 13,765；同年对欧盟/日韩/印尼不锈钢反倾销税落地（7/23）</li>
+        <li><b>教训</b>：政策脉冲行情的高度由情绪定、回落由库存定——第一次「印尼政策变量」定价演习</li>
+      </ul>
+    </div>
+
+    <div class="stage bear">
+      <span class="yr">② 2020 疫情 V 型</span><span class="px">沪镍 89,550(4/2)→123,580(收) · SS 11,680(3/23)→13,440 · LME年均 13,789</span>
+      <ul class="small">
+        <li><b>驱动</b>：3-4 月疫情封锁崩塌（SS 创上市新低），5 月起中国率先复苏+全球宽松+新能源叙事启动</li>
+        <li><b>产业背景</b>：印尼 NPI 产能疫情期间照投（2020 印尼 NPI 产量 57 万金属吨，+61%）——供应重心正式移向印尼</li>
+        <li><b>平衡</b>：全球 +83kt 小幅过剩（CRU），但显性库存低+流动性泛滥推高价格</li>
+      </ul>
+    </div>
+
+    <div class="stage bull">
+      <span class="yr">③ 2021 新能源双击</span><span class="px">沪镍高 161,600(10/21) · SS 高 22,425(9/23) · LME年均 18,488</span>
+      <ul class="small">
+        <li><b>驱动</b>：三元电池放量（中国电池耗镍 139→2022 年 409kt 的起点）+不锈钢高利润高排产；9 月能耗双控拉闸把 SS 推到上市最高 22,425</li>
+        <li><b>转折伏笔</b>：12/10 青山宣布高冰镍试制成功——NPI→高冰镍→硫酸镍通道打通，镍铁与纯镍两条定价线开始并轨</li>
+        <li><b>平衡</b>：全球 -179kt 短缺（CRU），是 2019-2026 唯一大缺口年；库存降至 466kt（8.4 周）</li>
+      </ul>
+    </div>
+
+    <div class="stage bear">
+      <span class="yr">④ 2022 伦镍逼空与体系冲击</span><span class="px">沪镍高 281,250(3/25)·低 142,500(7/15)·收 232,000 · LME年均 26,148（史高）</span>
+      <ul class="small">
+        <li><b>事件</b>：3/7-3/8 LME 镍两日自 3 万冲至 10 万美元上方，LME 暂停镍交易 8 天并取消 3/8 成交——青山 20 万吨级空头套保 vs 低库存+俄乌断供恐慌</li>
+        <li><b>传导</b>：SS 3/9 跟冲 24,785（史高）；此后超高价全面刺激印尼 NPI/高冰镍投产，7 月流动性危机叠加需求崩塌，沪镍腰斩</li>
+        <li><b>产业后果</b>：LME 镍流动性与公信力受损（持仓/成交至今未恢复事件前）；纯镍对 NPI 溢价畸形化→加速电积镍与高冰镍替代工艺落地</li>
+        <li><b>教训</b>：交割品结构（纯镍可交割 vs 印尼二级镍不可交割）是镍市最大的结构性脆弱点</li>
+      </ul>
+    </div>
+
+    <div class="stage bear">
+      <span class="yr">⑤ 2023 过剩定价元年</span><span class="px">沪镍 229,800(开)→121,880(11/27)，全年 -47% · LME年均 21,474</span>
+      <ul class="small">
+        <li><b>驱动</b>：中国电积镍产能集中投放（华友/中伟/格林美等同业，中国电镍产量 243.8kt，+38%）+印尼中间品放量（MHP 全球产量 288kt，+58%）</li>
+        <li><b>结构变化</b>：电积镍对俄镍形成替代，进口依赖骤降；纯镍-NPI-硫酸镍三线价差收窄，「按成本曲线定价」取代「按交割品稀缺定价」</li>
+        <li><b>不锈钢</b>：SS 17,470(1/30)→13,010(12/6)，地产链拖累+300系排产创新高（中国 2,031 万吨）压利润</li>
+      </ul>
+    </div>
+
+    <div class="stage">
+      <span class="yr">⑥ 2024 政策扰动式反弹与证伪</span><span class="px">沪镍高 160,500(5/21)·低 119,300(9/11) · LME年均 16,812</span>
+      <ul class="small">
+        <li><b>驱动</b>：上半年印尼 RKAB 审批延误（矿紧预期）+5 月新喀里多尼亚动乱（法属矿区停产）推动反弹；下半年双双证伪——RKAB 实际放量、新喀影响有限</li>
+        <li><b>平衡</b>：全球过剩 +96kt（CRU），LME 库存全年翻倍至 16 万吨级；价格重心由库存周期接管</li>
+        <li><b>不锈钢</b>：SS 全年 12,800-14,955 窄幅，过剩格局下利润被镍铁+铬铁两头挤压</li>
+      </ul>
+    </div>
+
+    <div class="stage bear">
+      <span class="yr">⑦ 2025 过剩顶峰</span><span class="px">沪镍高 135,960(3/14)→低 111,700(12/17) · LME年均 15,160（五年最低）</span>
+      <ul class="small">
+        <li><b>平衡</b>：全球过剩 +316kt（CRU 口径，2019-2031 周期峰值）；LME 库存 10.6→25 万吨+；镍价贴成本曲线右端运行</li>
+        <li><b>政策转折伏笔</b>：印尼 12 月放风 2026 年 RKAB 配额削减——供应端第一次主动收缩信号</li>
+        <li><b>不锈钢</b>：SS 低 12,255(11/20)，中印 300 系产量合计 2,543 万吨创新高 vs 需求疲弱，库销比 23 天高企</li>
+        <li><b>中间品拐点</b>：印尼中间品（冰镍+MHP+中高镍铁）月度产量 7 月见顶 22.89 万金属吨后逐月回落——过剩自我修正开始</li>
+      </ul>
+    </div>
+
+    <div class="stage">
+      <span class="yr">⑧ 2026 至今：政策托底 × 过剩压制的拉锯</span><span class="px">沪镍高 155,360(5/6)→低 114,610(10/16，最新) · CRU预测 2026 平衡 +7kt</span>
+      <ul class="small">
+        <li><b>上半年</b>：RKAB 收紧+HPM 基准价改革预期推动沪镍 5/6 冲 155,360；SS 同步高 15,835——政策叙事顶峰</li>
+        <li><b>下半年回归</b>：LME 库存 9/25 创 28.5 万吨新高、镍价 9 月创年内新低 16,050 美元；9/15 HPM 腰斩（1.2%品位基准价 -45%）+ESDM 审核收紧托底</li>
+        <li><b>当前读数（10-16）</b>：沪镍 114,610 年内新低区、MHP 系数 77.5%、SS 贴 304 冷轧成本线运行、印尼中间品产量同比 -10.6%（10 月累计）</li>
+        <li><b>框架意义</b>：CRU 预测 2026 全球平衡骤收至 +7kt（vs 2025 +316kt）——「印尼收缩叙事」与「显性库存新高」谁对谁错，是未来两个季度的主裁判</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="card" id="rv-year" style="margin-top:12px">
+    <h3>逐年高低点速查（主力连续，元/吨）</h3>
+    <div class="scrollx">
+    <table class="btable">
+      <tr><th>年份</th><th>沪镍 低</th><th>沪镍 高</th><th>沪镍 收</th><th>SS 低</th><th>SS 高</th><th>SS 收</th><th>LME年均($)</th><th>CRU全球平衡(kt)</th><th>年度关键词</th></tr>
+      <tr><td>2019</td><td>86,080</td><td>149,190</td><td>112,130</td><td>13,765</td><td>15,935</td><td>14,410</td><td>13,935</td><td>-48</td><td>印尼禁矿脉冲、SS上市</td></tr>
+      <tr><td>2020</td><td>89,550</td><td>134,180</td><td>123,580</td><td>11,680</td><td>15,470</td><td>13,440</td><td>13,789</td><td>+83</td><td>疫情V型、印尼NPI+61%</td></tr>
+      <tr><td>2021</td><td>118,000</td><td>161,600</td><td>152,080</td><td>13,420</td><td>22,425</td><td>17,125</td><td>18,488</td><td>-179</td><td>新能源双击、能耗双控、高冰镍问世</td></tr>
+      <tr><td>2022</td><td>142,500</td><td>281,250</td><td>232,000</td><td>15,105</td><td>24,785</td><td>16,820</td><td>26,148</td><td>+58</td><td>伦镍逼空、LME停盘8天</td></tr>
+      <tr><td>2023</td><td>121,880</td><td>234,870</td><td>125,210</td><td>13,010</td><td>17,470</td><td>13,680</td><td>21,474</td><td>+127</td><td>电积镍投放、过剩定价元年</td></tr>
+      <tr><td>2024</td><td>119,300</td><td>160,500</td><td>124,750</td><td>12,800</td><td>14,955</td><td>12,995</td><td>16,812</td><td>+96</td><td>RKAB延误+新喀动乱、证伪回落</td></tr>
+      <tr><td>2025</td><td>111,700</td><td>135,960</td><td>132,850</td><td>12,255</td><td>13,690</td><td>13,125</td><td>15,160</td><td>+316</td><td>过剩顶峰、LME库存翻倍</td></tr>
+      <tr><td>2026YTD</td><td>114,610</td><td>155,360</td><td>115,240*</td><td>13,070</td><td>15,835</td><td>13,215*</td><td>~15,700</td><td>+7E</td><td>政策托底vs过剩压制拉锯</td></tr>
+    </table>
+    </div>
+    <p class="small dim">*2026 收=10-16 最新。沪镍/SS 高低点=新浪主力连续日线；LME 年均与平衡=CRU 2026-09 版。</p>
+  </div>
+
+  <div class="card" id="rv-lesson" style="margin-top:12px">
+    <h3>八阶段复盘出的四条定价规律</h3>
+    <ul>
+      <li><b>政策脉冲看库存兑现</b>：2019 禁矿、2024 RKAB、2026 RKAB 三次印尼政策行情，高度递减（+73%→+35%→+15%）——市场对「印尼故事」边际钝化，只有库存/产量数据兑现才能延续趋势</li>
+      <li><b>交割品结构决定尾部风险</b>：2022 逼空的根源是纯镍可交割库存枯竭 vs 印尼二级镍不可交割；此后电积镍国产化+高冰镍通道让同一情景不再成立——2023 起价格按成本曲线定价</li>
+      <li><b>成本线是慢变量底</b>：2023/2025 两轮下跌都止步于 CRU 成本曲线 80-90 分位附近（当前 p90≈17,800 美元/吨，现价 15,700 已穿 p75）；深跌需要印尼政策松绑配合</li>
+      <li><b>不锈钢是镍的需求端放大器</b>：SS 占镍需求 2/3，300 系排产拐点领先镍价拐点约 1-2 个月（2021/9、2023/1、2026/5 三次共振见顶）；NI/SS 比值（当前 8.81，低位区）是跨品种相对强弱温度计</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ============ 价格与价差 ============ -->
+<div class="sec" id="s-price">
+  <div class="subnav">
+    <a href="#px-base">盘面与现货</a><a href="#px-prem">升贴水</a><a href="#px-npi">NPI矩阵</a><a href="#px-mid">中间品与硫酸镍</a><a href="#px-ratio">比值与价差</a><a href="#px-pct">历史分位</a>
+  </div>
+  <div class="grid g2">
+    <div class="card" id="px-base">
+      <h3>盘面与现货基准</h3>
+      <table>
+        <tr><th>品种</th><th class="num">价格</th><th class="num">变动</th><th>日期/来源</th></tr>
+        <tr><td>沪镍主力 NI</td><td class="num">115,240 元/吨</td><td class="num up">周 -3.24%</td><td>10-16 · zhiji行情（周报口径）</td></tr>
+        <tr><td>不锈钢主力 SS</td><td class="num">13,215 元/吨</td><td class="num up">周 -2.47%</td><td>10-16 · 同上</td></tr>
+        <tr><td>LME 镍（场外收盘）</td><td class="num">15,730 美元/吨</td><td class="num">—</td><td>10-07 · cnfeol cv:442</td></tr>
+        <tr><td>SMM 1#电解镍</td><td class="num">117,450 元/吨</td><td class="num up">日 -1,700</td><td>10-16 · SMM hq</td></tr>
+        <tr><td>镍豆</td><td class="num">115,000 元/吨</td><td class="num up">日 -1,950</td><td>10-16 · SMM hq</td></tr>
+        <tr><td>金川镍 1#</td><td class="num">124,150 元/吨</td><td class="num">—</td><td>10-08 · cnfeol cv:81</td></tr>
+        <tr><td>进口镍 1#</td><td class="num">120,200 元/吨</td><td class="num">—</td><td>10-08 · cnfeol cv:83</td></tr>
+        <tr><td>印尼精炼镍 FOB</td><td class="num">15,250 美元/吨</td><td class="num up">日 -350</td><td>10-16 · SMM hq</td></tr>
+      </table>
+      <h4 id="px-prem">升贴水（对沪镍合约，元/吨）</h4>
+      <table class="mini">
+        <tr><th>品种</th><th class="num">升贴水</th><th class="num">日变动</th><th>来源</th></tr>
+        <tr><td>金川镍（2611合约）</td><td class="num">+4,750</td><td class="num dn">+450</td><td>SMM hq 10-16（周报图=s20019092）</td></tr>
+        <tr><td>俄镍/进口镍（2611合约）</td><td class="num">+250</td><td class="num">0</td><td>SMM hq 10-16（周报图=ID00302596）</td></tr>
+        <tr><td>SMM电积镍</td><td class="num">+300</td><td class="num dn">+50</td><td>SMM hq 10-16</td></tr>
+        <tr><td>镍豆（BHP）</td><td class="num">-200</td><td class="num">0</td><td>zhiji ID00302595 · 10-16</td></tr>
+        <tr><td>俄镍进口提单盈亏</td><td class="num">+50.7</td><td class="num">—</td><td>Mysteel镜像 10-16（微幅打开）</td></tr>
+        <tr><td>镍豆LME提单盈亏</td><td class="num">-780.9</td><td class="num">—</td><td>Mysteel镜像 10-16</td></tr>
+      </table>
+    </div>
+    <div class="card" id="px-npi">
+      <h3>NPI 报价矩阵（元/镍点，SMM hq 10-16）</h3>
+      <table class="mini">
+        <tr><th>规格/地区</th><th class="num">价格</th><th class="num">日变动</th></tr>
+        <tr><td>中国 8-10% 出厂</td><td class="num">1,010.0</td><td class="num up">-7.5</td></tr>
+        <tr><td>中国 10-12% 出厂</td><td class="num">1,019.5</td><td class="num up">-7.0</td></tr>
+        <tr><td>印尼 10-12% 到港含税</td><td class="num">1,022.5</td><td class="num up">-7.0</td></tr>
+        <tr><td>印尼 12-14% 到港含税</td><td class="num">1,029.5</td><td class="num up">-7.0</td></tr>
+        <tr><td>印尼 ≥14% 到港含税</td><td class="num">1,040.0</td><td class="num up">-7.0</td></tr>
+        <tr><td>高镍生铁指数</td><td class="num">1,024.8</td><td class="num up">-6.2</td></tr>
+        <tr><td>低碳高镍生铁指数</td><td class="num">1,034.8</td><td class="num up">-6.3</td></tr>
+        <tr><td>印尼 NPI FOB 指数</td><td class="num">131.87 美元/镍点</td><td class="num up">-0.80</td></tr>
+        <tr><td>水淬镍铁</td><td class="num">1,160 元/镍</td><td class="num">—</td></tr>
+        <tr><td>低镍铁 1.5-1.8%</td><td class="num">3,515 元/吨</td><td class="num">—</td></tr>
+      </table>
+      <p class="small dim">对照：cnfeol 中国 NPI NI8-12% 1,040 / 印尼 NI10-12% 1,040 元/镍点（10-08）；周报 Excel 江苏镍铁 1,055 元/镍点（10-16，ND 汇总-镍）。</p>
+      <h4 id="px-mid">中间品与硫酸镍</h4>
+      <table class="mini">
+        <tr><th>品种</th><th class="num">价格</th><th class="num">日变动</th><th>来源</th></tr>
+        <tr><td>印尼 MHP FOB</td><td class="num">12,917 美元/镍吨</td><td class="num up">-91</td><td>SMM hq 10-16</td></tr>
+        <tr><td>印尼高冰镍 FOB</td><td class="num">14,268 美元/镍吨</td><td class="num up">-99</td><td>SMM hq 10-16</td></tr>
+        <tr><td>MHP 系数（对电池级硫酸镍指数）</td><td class="num">77.5%</td><td class="num up">-2.5pp</td><td>SMM hq 10-16（CRU 口径 2025 全年 85.4%）</td></tr>
+        <tr><td>电池级硫酸镍</td><td class="num">28,375 元/吨</td><td class="num up">-150</td><td>SMM hq 10-16</td></tr>
+        <tr><td>SMM电池级硫酸镍指数</td><td class="num">27,935 元/吨</td><td class="num up">-144</td><td>SMM hq 10-16</td></tr>
+        <tr><td>电镀级硫酸镍</td><td class="num">33,000 元/吨</td><td class="num">—</td><td>SMM hq 10-16</td></tr>
+        <tr><td>电池级硫酸镍 CIF中国</td><td class="num">3,397.6 美元/吨</td><td class="num up">-85.9</td><td>SMM hq 10-16</td></tr>
+        <tr><td>氧化亚镍 Ni≥76% / 氯化镍</td><td class="num">116,000 / 38,000 元/吨</td><td class="num">—</td><td>SMM hq 10-16</td></tr>
+      </table>
+      <p class="small dim">高冰镍 FOB − MHP FOB = 1,351 美元/镍吨，火法溢价仍在；MHP 系数单日落 2.5pp 是过剩程度的直接读数。</p>
+    </div>
+  </div>
+  <div class="card" id="px-ratio" style="margin-top:12px">
+    <h3>跨品种比值与不锈钢价差矩阵（镍数据.xlsx「指标」/「价差」/「SS」sheet，至 10-09/10）</h3>
+    <div class="grid g3">
+      <div>
+        <h4>跨品种比值</h4>
+        <table class="mini">
+          <tr><th>指标</th><th class="num">最新</th><th>日期</th></tr>
+          <tr><td>NI/SS 盘面比</td><td class="num">8.81</td><td>10-09 · 低位区=镍相对不锈钢偏弱（做缩镍/不锈钢比价的参照系）</td></tr>
+          <tr><td>SS/NI 比值</td><td class="num">0.1136</td><td>10-09</td></tr>
+          <tr><td>304 自产-外购高镍铁成本差</td><td class="num">-92 元/吨</td><td>10-10 · 一体化钢厂仍有成本优势</td></tr>
+          <tr><td>俄镍进口仓单盈亏-升贴水</td><td class="num">+119.7</td><td>10-09</td></tr>
+        </table>
+      </div>
+      <div>
+        <h4>不锈钢冷热轧/地区价差（元/吨）</h4>
+        <table class="mini">
+          <tr><th>价差</th><th class="num">最新</th><th>日期</th></tr>
+          <tr><td>201J1 冷-热（无锡/佛山）</td><td class="num">1,150 / 1,350</td><td>10-10</td></tr>
+          <tr><td>430 冷-热（无锡太钢）</td><td class="num">1,100</td><td>10-10</td></tr>
+          <tr><td>304 冷轧 佛山-无锡</td><td class="num">-50</td><td>10-10</td></tr>
+          <tr><td>304 冷轧 淄博-无锡</td><td class="num">+50</td><td>10-10</td></tr>
+          <tr><td>304 热轧 淄博-华东</td><td class="num">+400</td><td>10-10</td></tr>
+        </table>
+        <p class="small dim">⚠ 304 冷-热价差（无锡/佛山德龙）停更于 2025-05。</p>
+      </div>
+      <div>
+        <h4>SS 期货结构与现货基差</h4>
+        <table class="mini">
+          <tr><th>指标</th><th class="num">最新</th><th>日期</th></tr>
+          <tr><td>SS 基差</td><td class="num">+720 元/吨</td><td>10-09</td></tr>
+          <tr><td>SS 月差 连-连一/连一-连二/连二-连三</td><td class="num">-35 / +30 / +10</td><td>10-09 · 近月微back、远月contango</td></tr>
+          <tr><td>SS 持仓量</td><td class="num">16.0 万手</td><td>10-09</td></tr>
+          <tr><td>宝新/张浦/太钢 304冷轧(佛山)-SS主力基差</td><td class="num">750 / 1,150 / 2,250</td><td>10-09</td></tr>
+          <tr><td>宝新/张浦/太钢 304冷轧(无锡)-SS主力基差</td><td class="num">1,600 / 950 / 1,350</td><td>10-09</td></tr>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="card" id="px-pct" style="margin-top:12px">
+    <h3>关键读数历史分位（当前值在历史上的位置，回答"贵不贵/紧不紧"）</h3>
+    <div class="scrollx">
+    <table class="mini">
+      <tr><th>指标</th><th class="num">最新值</th><th>日期</th><th class="num">分位</th><th>样本窗口 · 源</th></tr>
+      <tr><td>电解镍 1# 价</td><td class="num">122,250 元/吨</td><td>10-08</td><td class="num">53%</td><td>2012-2026 · cnfeol</td></tr>
+      <tr><td>NPI NI8-12%</td><td class="num">1,050 元/镍</td><td>10-08</td><td class="num">50%</td><td>2018-2026 · cnfeol</td></tr>
+      <tr><td>镍矿港口库存</td><td class="num">1,172 万吨</td><td>09-18</td><td class="num">61%</td><td>2011-2026 · cnfeol</td></tr>
+      <tr><td>菲矿 FOB 1.5%</td><td class="num">44 美元/湿吨</td><td>10-08</td><td class="num">57%</td><td>2013-2026 · cnfeol</td></tr>
+      <tr><td>硫酸镍</td><td class="num">30,000 元/吨</td><td>10-09</td><td class="num">40%</td><td>2021-2026 · cnfeol</td></tr>
+      <tr><td>低镍铁 1.5-1.8%</td><td class="num">3,525 元/吨</td><td>10-08</td><td class="num">50%</td><td>2011-2026 · cnfeol</td></tr>
+      <tr><td>镍铁进口量（月）</td><td class="num">96 万吨</td><td>26-08</td><td class="num up">97%</td><td>2010-2026 · cnfeol</td></tr>
+      <tr><td>LME 镍库存</td><td class="num">279,990 吨</td><td>10-16</td><td class="num up">71%</td><td>近 1 年 · Mysteel 镜像</td></tr>
+      <tr><td>304 冷轧生产成本</td><td class="num">13,304 元/吨</td><td>10-16</td><td class="num">29%</td><td>近 1 年 · Mysteel 镜像</td></tr>
+      <tr><td>高冰镍制硫酸镍成本</td><td class="num">26,393 元/吨</td><td>10-16</td><td class="num">17%</td><td>近 1 年 · Mysteel 镜像</td></tr>
+      <tr><td>佛山不锈钢库存</td><td class="num">21.5 万吨</td><td>10-16</td><td class="num up">95%</td><td>近 1 年 · Mysteel 镜像</td></tr>
+      <tr><td>无锡不锈钢库存</td><td class="num">51.5 万吨</td><td>10-16</td><td class="num">18%</td><td>近 1 年 · Mysteel 镜像</td></tr>
+    </table>
+    </div>
+    <p class="small dim">口径：分位 = 历史中 ≤ 当前值的占比。cnfeol chartv2 为 2010 年代起长历史（真分位）；Mysteel 匿名通道窗口仅约 1 年（读作「近一年分位」）。⚠ 菲矿 1.5% 连云港人民币价系列 2024-07 起停更不列入。<b>读法</b>：价格类全在中位附近（电解镍 53%/NPI 50%）= 绝对价不贵也不便宜，矛盾不在估值在方向；镍铁进口量 97% 分位=印尼 NPI 回流大潮的横截面证据；佛山 95% vs 无锡 18% = 南北库存结构分化（佛山累、无锡去），合计 72.97 万吨的总量口径掩盖了区域矛盾；高冰镍制硫酸镍成本 17% 分位=中间品跌价已把电池链成本打到近一年低位。</p>
+  </div>
+</div>
+
+<!-- ============ 供应端 ============ -->
+<div class="sec" id="s-supply">
+  <div class="subnav">
+    <a href="#sp-ore">矿端</a><a href="#sp-npi">NPI/镍铁</a><a href="#sp-mid">中间品</a><a href="#sp-ref">精炼镍</a>
+  </div>
+  <div class="grid g2">
+    <div class="card" id="sp-ore">
+      <h3>矿端：政策与量价</h3>
+      <table>
+        <tr><th>指标</th><th>最新读数/状态</th><th>要点</th></tr>
+        <tr><td>印尼 RKAB 配额</td><td class="num">2026 不再增加（8/20 APNI）</td><td>曾建议 2.7 亿吨+3000 万缓冲；ESDM 9/17 起收紧审核（欠税/未复垦叫停），2027 维持年度制</td></tr>
+        <tr><td>印尼 HPM 基准价</td><td class="num">1.2% 品位腰斩 45%（部长令363号，9/15）</td><td>矿价政策变量，直接影响 NPI 成本</td></tr>
+        <tr><td>中国镍矿进口</td><td class="num">8月 596 万吨</td><td>cnfeol cv:296 月度；印尼 1-7 月自菲进口 1140 万吨 (+67%)</td></tr>
+        <tr><td>镍矿港口库存</td><td class="num">1,172 万吨（9-18）</td><td>cnfeol cv:69 周度；到货与消耗平衡观察</td></tr>
+      </table>
+      <h4>菲律宾矿分品位（美元/湿吨，SMM hq 10-16）</h4>
+      <table class="mini">
+        <tr><th>品位</th><th class="num">FOB</th><th class="num">CIF中国</th><th class="num">CIF印尼</th></tr>
+        <tr><td>0.7%（Al≥5% / Al&lt;5%）</td><td class="num">16.5 / 23.0</td><td class="num">30.5 / 37.0</td><td class="num">—</td></tr>
+        <tr><td>0.9%（Al≥7% / Al&lt;7%）</td><td class="num">16.0 / 22.5</td><td class="num">29.0 / 35.0</td><td class="num">—</td></tr>
+        <tr><td>1.3%</td><td class="num">28.0</td><td class="num">41.5</td><td class="num">40.5</td></tr>
+        <tr><td>1.4%</td><td class="num">38.0</td><td class="num">52.5</td><td class="num">50.5</td></tr>
+        <tr><td>1.5%</td><td class="num">45.5</td><td class="num">60.5</td><td class="num">—</td></tr>
+        <tr><td>1.8%</td><td class="num">73.0</td><td class="num">88.5</td><td class="num">—</td></tr>
+      </table>
+      <p class="small dim">对照 cnfeol（10-08）：菲矿 1.5% CIF 63 / FOB 44；1.8% CIF 91。FOB-CIF 价差≈15 美元=海运费+保险。</p>
+      <h4>印尼内贸矿（美元/湿吨，SMM hq 10-16）</h4>
+      <table class="mini">
+        <tr><th>路线/品位</th><th class="num">FOB</th><th class="num">到港价</th></tr>
+        <tr><td>湿法 1.2%</td><td class="num">19.0</td><td class="num">25.5</td></tr>
+        <tr><td>湿法 1.3%</td><td class="num">21.0</td><td class="num">27.5</td></tr>
+        <tr><td>火法 1.4%</td><td class="num">40.65</td><td class="num">47.1</td></tr>
+        <tr><td>火法 1.5%</td><td class="num">45.9</td><td class="num">52.5</td></tr>
+        <tr><td>火法 1.6%</td><td class="num">51.2</td><td class="num">57.1</td></tr>
+      </table>
+      <h4>镍矿海运费（美元/湿吨）</h4>
+      <table class="mini">
+        <tr><th>航线</th><th class="num">运费</th><th>来源</th></tr>
+        <tr><td>中苏拉威西→IMIP / →IWIP</td><td class="num">4.05 / 7.90</td><td>SMM hq 10-16</td></tr>
+        <tr><td>东南苏拉威西→IMIP / →IWIP</td><td class="num">5.35 / 8.90</td><td>SMM hq 10-16</td></tr>
+        <tr><td>菲律宾 Zambales / Surigao→连云港</td><td class="num">13.4 / 14.4</td><td>cnfeol cv:399/398 · 10-08</td></tr>
+        <tr><td>镍铁海运费 印尼Weda Bay→铁山港</td><td class="num">32 美元/吨</td><td>cnfeol cv:1102 · 10-08</td></tr>
+      </table>
+    </div>
+    <div class="card" id="sp-npi">
+      <h3>NPI/镍铁</h3>
+      <table>
+        <tr><th>指标</th><th class="num">读数</th><th>来源/日期</th></tr>
+        <tr><td>中国高镍铁产量</td><td class="num">9月 21,259 金属吨</td><td>cnfeol cv:248 月度</td></tr>
+        <tr><td>中国低镍铁产量</td><td class="num">9月 6,880 金属吨</td><td>cnfeol cv:353 月度</td></tr>
+        <tr><td>镍铁开工率</td><td class="num">内蒙 100% / 江苏 50%</td><td>cnfeol cv:75/73 · 9月</td></tr>
+        <tr><td>镍铁进口量</td><td class="num">8月 96.14 万吨（实物）</td><td>cnfeol cv:374 月度</td></tr>
+        <tr><td>印尼镍铁产量</td><td class="num">9月 14.46 / 10月预估 14.9 万金属吨</td><td>B01 中国平衡(NPI) 月度</td></tr>
+        <tr><td>镍铁库存</td><td class="num">0.35 万金属吨</td><td>B01 · 9月</td></tr>
+      </table>
+      <table>
+        <tr><th>公司/地区</th><th class="num">2025产量(吨镍)</th><th class="num">26Q2</th><th>备注</th></tr>
+        <tr><td>Nickel Industries</td><td class="num">124,967</td><td class="num">27,864</td><td>100% 项目基准；Hengjaya 矿 RKAB 1,900万wmt</td></tr>
+        <tr><td>Merdeka (MBMA)</td><td class="num">73,871</td><td class="num">19,505</td><td>指引 NPI 7-8 万吨+高冰镍 4.4-4.8 万吨</td></tr>
+        <tr><td>Eramet Weda Bay</td><td class="num">35,800</td><td class="num">7,700</td><td>9/10 获批重启采矿（停产4个月）；2026 初始 RKAB 仅批 12Mwmt（2025=42M）</td></tr>
+        <tr><td>Antam</td><td class="num">16,064</td><td class="num">3,812</td><td>指引镍铁 18,367 吨镍；矿 1,810 万 wmt</td></tr>
+        <tr><td>Anglo(待售MMG)</td><td class="num">39,700</td><td class="num">9,100</td><td>交割后改跟 MMG(1208.HK)</td></tr>
+      </table>
+      <p class="small dim">NPI 价格矩阵（中印分品位双报价）见「价格与价差」页；印尼分项目产量长表见「全球供需展望」页。</p>
+    </div>
+    <div class="card" id="sp-mid">
+      <h3>中间品：MHP / 高冰镍 / 镍锍（重点板块）</h3>
+      <table>
+        <tr><th>量价指标</th><th class="num">读数</th><th>来源/日期</th></tr>
+        <tr><td>印尼中间品产量（冰镍+MHP+中高镍铁）</td><td class="num">9月 20.34 万金属吨<br><span class="up">10月累计同比 -10.6%</span></td><td>ND 中间品汇总（钢联）· 7月见顶 22.89 后逐月回落</td></tr>
+        <tr><td>中国 MHP 进口（湿法中间品）</td><td class="num">8月 114,870 吨（实物）</td><td>Mysteel niMaterial 月度</td></tr>
+        <tr><td>中国高冰镍进口</td><td class="num">8月 33,018 吨（实物）</td><td>Mysteel niMaterial 月度</td></tr>
+        <tr><td>MHP 系数 / 高冰镍-MHP价差</td><td class="num">77.5% / 1,351 美元/镍吨</td><td>SMM hq 10-16</td></tr>
+      </table>
+      <table>
+        <tr><th>公司</th><th class="num">2025(吨镍)</th><th class="num">26Q1/Q2</th><th>指引/口径</th></tr>
+        <tr><td>华友钴业</td><td class="num">287,000</td><td class="num">未披露</td><td>100% 项目口径；券商估权益约 13 万吨</td></tr>
+        <tr><td>格林美</td><td class="num">110,839</td><td class="num">13,895/13,895</td><td>2026 年 15 万吨/年满产；IGIP 2026 底竣工、2027H1 投产</td></tr>
+        <tr><td>力勤资源</td><td class="num">—</td><td class="num">港股无季报</td><td>湿法 13 万吨+火法 17 万吨产能</td></tr>
+        <tr><td>PTVI 镍锍(80%包销)</td><td class="num">54,700</td><td class="num">14,500/11,400</td><td>26Q2 环比-21%（Sorowako）；指引 67,645 吨(100%)</td></tr>
+        <tr><td>NIC HNC MHP(100%)</td><td class="num">21,441</td><td class="num">21,526/19,646</td><td>按约 8.4 万吨/年运行；权益仅 10%</td></tr>
+        <tr><td>Merdeka 高冰镍</td><td class="num">19,998</td><td class="num">10,361/9,165</td><td>指引 4.4-4.8 万吨</td></tr>
+        <tr><td>Sherritt MSP(50%)</td><td class="num">12,650</td><td class="num">1,811/934</td><td>古巴制裁停摆，指引实质暂停</td></tr>
+      </table>
+      <p class="small dim">2026 印尼四大变量：①RKAB 配额 ②华飞检修 ③ENC+SLNC 投产 ④NPI 转高冰镍窗口。CRU 口径高冰镍 2026 冲顶 424kt 后持续萎缩（→2031 仅 66kt），增量全靠 HPAL。</p>
+    </div>
+    <div class="card" id="sp-ref">
+      <h3>精炼镍 / 一级镍</h3>
+      <table>
+        <tr><th>量价指标</th><th class="num">读数</th><th>来源/日期</th></tr>
+        <tr><td>中国精炼镍产量</td><td class="num">9月 28,651 吨</td><td>Mysteel NI 月度（周报B01口径 28,375）</td></tr>
+        <tr><td>印尼精炼镍产量</td><td class="num">9月 8,000 金属吨</td><td>zhiji ID02026189</td></tr>
+        <tr><td>中国精炼镍表观消费</td><td class="num">8月 36,074 吨</td><td>Mysteel NI 月度</td></tr>
+        <tr><td>未锻轧非合金镍进口/出口</td><td class="num">8月 2,800 / 59.7 吨</td><td>Mysteel NI 海关月度（≥99.99%品目）</td></tr>
+        <tr><td>进口盈亏</td><td class="num">俄镍提单 +50.7 / 镍豆LME -780.9 元/吨</td><td>Mysteel NI 日度 10-16</td></tr>
+      </table>
+      <table>
+        <tr><th>公司</th><th class="num">2025(吨)</th><th class="num">26Q2</th><th>备注</th></tr>
+        <tr><td>Nornickel</td><td class="num">198,521</td><td class="num">43,282</td><td>指引 19.3-20.3 万吨</td></tr>
+        <tr><td>住友金属矿山</td><td class="num">86,600</td><td class="num">19,900</td><td>FY26 电解镍指引 6.46 万吨</td></tr>
+        <tr><td>Vale（Sudbury+VB+精炼厂）</td><td class="num">≈149,500</td><td class="num">32,700</td><td>集团镍指引 175-200kt</td></tr>
+        <tr><td>Glencore(INO+Murrin)</td><td class="num">71,900</td><td class="num">18,600</td><td>集团自产镍 7-8 万吨</td></tr>
+        <tr><td>Ambatovy</td><td class="num">29,000</td><td class="num">—</td><td>气旋停产、待售 AMRI、指引撤回</td></tr>
+        <tr><td>BHP / Sibanye</td><td class="num">≈3,546</td><td class="num">0</td><td>停产（BHP 2027/2 复审）</td></tr>
+      </table>
+      <p class="small dim">金川/俄镍升贴水偏弱维持=现货端刚需为主（金川 +4,750 为对 2611 合约口径，随换月跳动）。</p>
+    </div>
+  </div>
+</div>
+
+<!-- ============ 需求端 ============ -->
+<div class="sec" id="s-demand">
+  <div class="subnav">
+    <a href="#dm-ss">不锈钢</a><a href="#dm-bat">电池链</a><a href="#dm-other">电镀合金</a><a href="#dm-cost">成本曲线</a>
+  </div>
+  <div class="grid g2">
+    <div class="card ss" id="dm-ss">
+      <h3>不锈钢（占镍需求约 2/3）</h3>
+      <table>
+        <tr><th>指标</th><th class="num">读数</th><th>来源/日期</th></tr>
+        <tr><td>粗钢产量（33家）</td><td class="num">9月 309.16 万吨</td><td>Mysteel SS 月度</td></tr>
+        <tr><td>300系粗钢（中国 / 印尼）</td><td class="num">9月 181 / 40 万吨</td><td>B01 中国平衡SS</td></tr>
+        <tr><td>粗钢产能（月度）</td><td class="num">465.26 万吨</td><td>Mysteel SS 排产调查 9月</td></tr>
+        <tr><td>佛山+无锡库存</td><td class="num">21.47+51.50=72.97 万吨</td><td>Mysteel SS 周度 10-16</td></tr>
+        <tr><td>300系库存（总）</td><td class="num">63.86 万吨</td><td>B01 SS库存 周度（周报口径）</td></tr>
+        <tr><td>304 生产成本（冷轧 / 热轧综合）</td><td class="num">13,304 / 12,804 元/吨</td><td>Mysteel SS 日度 10-16</td></tr>
+        <tr><td>不锈钢进口 / 出口</td><td class="num">8月 14.09 / 44.57 万吨（净出口 30.5）</td><td>B01 周报页·海关月度</td></tr>
+        <tr><td>废不锈钢采购（32家）/ 废料镍占比</td><td class="num">8月 67.7 万吨 / 20.7%</td><td>B01 中国平衡SS 月度</td></tr>
+        <tr><td>不锈钢仓单</td><td class="num">63,503 吨</td><td>上期所（ND SS sheet）10-09</td></tr>
+      </table>
+      <p class="small dim">现货端 SS 主力 13,215（10-16）已贴近 304 冷轧成本 13,304——成本支撑逻辑在线；佛山/无锡分系别细分在 Mysteel SS 8 图内。</p>
+    </div>
+    <div class="card" id="dm-bat">
+      <h3>电池链（占镍需求约 15-17%）</h3>
+      <table>
+        <tr><th>指标</th><th class="num">读数</th><th>来源/日期</th></tr>
+        <tr><td>硫酸镍产量（实物 / 金属量）</td><td class="num">9月 21.55 万吨 / 4.74 万金属吨</td><td>Mysteel niMaterial 月度</td></tr>
+        <tr><td>硫酸镍开工率</td><td class="num">62.05%（区间 40-85%）</td><td>ND 硫酸镍 · 9月（周报口径）</td></tr>
+        <tr><td>硫酸镍镍豆需求量</td><td class="num">9月 = 0 吨</td><td>Mysteel niMaterial——镍豆工艺已退出</td></tr>
+        <tr><td>三元 / 铁锂电池产量</td><td class="num">9月 41.2 / 195.3 GWh（三元份额 17.4%）</td><td>B01 中国新能源</td></tr>
+        <tr><td>三元 / 铁锂装车量</td><td class="num">9月 11.0 / 67.6 GWh（份额 14.0%）</td><td>B01 中国新能源</td></tr>
+        <tr><td>硫酸镍生产成本（氢氧化镍 / 高冰镍路线）</td><td class="num">26,764 / 26,393 元/吨</td><td>Mysteel niMaterial 日度 10-16</td></tr>
+        <tr><td>新能源车销量</td><td class="num">月销峰值约 160 万辆</td><td>Wind/乘联会（周报 P17 原版图）</td></tr>
+      </table>
+      <p class="small dim">电池级硫酸镍 28,375 vs 两条工艺成本 ≈26,400-26,800——加工利润约 1,600-2,000 元/吨，开工率 62% 有利润支撑；但 MHP 系数 77.5% 下行说明原料端议价弱。CRU 预测 2031 年硫酸镍平衡转微缺（-0.3kt）——电池线是长期需求故事的最后支撑。</p>
+    </div>
+    <div class="card" id="dm-other">
+      <h3>电镀/合金/其他 + 纯镍刚需</h3>
+      <p>精炼镍下游（电镀、合金、特钢、铸造）以刚需为主。电镀级硫酸镍 33,000 元/吨（10-16）较电池级溢价 4,625 元；金川/俄镍升贴水与镍豆/镍板库存是高频温度计。</p>
+      <ul>
+        <li>精炼镍表观消费 8月 36,074 吨（Mysteel 月度），净进口近零（8月进 2,800 吨/出 60 吨）</li>
+        <li>氧化亚镍 116,000、氯化镍 38,000 元/吨（10-16，SMM hq）——电镀/催化剂链价格锚</li>
+        <li>三元回收料系数：极片粉镍 71.75% / 电池粉镍 67.5%（10-16）——回收端对原生镍的替代观察</li>
+        <li>CRU 中国需求分板块（2025→2031E，kt）：不锈钢 1,643→2,099 / 电池 418→654 / 电镀 91→103 / 有色合金 105→157——电池与合金是仅有的两个增量板块</li>
+      </ul>
+    </div>
+    <div class="card" id="dm-cost">
+      <h3>中国需求结构速览（CRU，kt Ni）</h3>
+      <table class="mini">
+        <tr><th>板块</th><th class="num">2020</th><th class="num">2023</th><th class="num">2025</th><th class="num">2026E</th><th class="num">2031E</th></tr>
+        <tr><td>一次镍需求合计</td><td class="num">1,400</td><td class="num">2,083</td><td class="num">2,308</td><td class="num">2,528</td><td class="num">3,073</td></tr>
+        <tr><td>不锈钢耗镍</td><td class="num">1,117</td><td class="num">1,483</td><td class="num">1,643</td><td class="num">1,729</td><td class="num">2,099</td></tr>
+        <tr><td>电池</td><td class="num">139</td><td class="num">410</td><td class="num">418</td><td class="num">528</td><td class="num">654</td></tr>
+        <tr><td>电镀</td><td class="num">78</td><td class="num">86</td><td class="num">91</td><td class="num">94</td><td class="num">103</td></tr>
+        <tr><td>有色合金</td><td class="num">25</td><td class="num">57</td><td class="num">105</td><td class="num">125</td><td class="num">157</td></tr>
+        <tr><td>合金钢+铸造+其他</td><td class="num">41</td><td class="num">47</td><td class="num">49</td><td class="num">52</td><td class="num">60</td></tr>
+        <tr><td class="dim">（废钢耗镍参考）</td><td class="num">276</td><td class="num">363</td><td class="num">361</td><td class="num">406</td><td class="num">525</td></tr>
+      </table>
+      <p class="small dim">电池占比 2023 见顶（19.7%）后回落再回升：CRU 2026E 20.9%；不锈钢占比缓降 66%→68%（量增份额稳）。详细成本曲线见「成本曲线」页。</p>
+    </div>
+  </div>
+</div>
+
+<!-- ============ 库存明细 ============ -->
+<div class="sec" id="s-inv">
+  <div class="subnav">
+    <a href="#iv-ni">镍库存</a><a href="#iv-ss">不锈钢与铬系库存</a>
+  </div>
+  <div class="grid g2">
+    <div class="card" id="iv-ni">
+      <h3>镍库存全口径（吨）</h3>
+      <table>
+        <tr><th>口径</th><th class="num">读数</th><th>频率/日期</th><th>来源</th></tr>
+        <tr><td>LME 镍库存</td><td class="num">279,990</td><td>日度 10-16</td><td>Mysteel NI 镜像（周报ND口径 282,864）</td></tr>
+        <tr><td>沪镍仓单</td><td class="num">94,059</td><td>日度 10-16</td><td>ND NI!KA12（周报图）</td></tr>
+        <tr><td>精炼镍社会库存（18家样本）</td><td class="num">115,983 <span class="tag t-bad">停更</span></td><td>周度，停 8-14</td><td>Mysteel NI——映射待排查</td></tr>
+        <tr><td>精炼镍社库（27家口径）</td><td class="num">111,265</td><td>周度 第41周</td><td>ND SS sheet（仍在更新）</td></tr>
+        <tr><td>精炼镍现货库存（27家）</td><td class="num">14,436</td><td>周度 第41周</td><td>ND SS sheet</td></tr>
+        <tr><td>社库+LME 合计</td><td class="num">394,129</td><td>周度 10-09</td><td>ND SS sheet——历史高位区</td></tr>
+        <tr><td>镍板库存</td><td class="num">115,583</td><td>周度（周报口径）</td><td>ND 镍!CI70</td></tr>
+        <tr><td>镍豆社库 / 保税区</td><td class="num">400 / 400 <span class="tag t-bad">停更</span></td><td>周度，停 8-14</td><td>Mysteel niMaterial</td></tr>
+        <tr><td>镍铁库存</td><td class="num">≈3,500（0.35万金属吨）</td><td>月度 9月</td><td>B01 中国平衡(NPI)</td></tr>
+        <tr><td>镍矿港口库存</td><td class="num">1,172 万吨</td><td>周度 9-18</td><td>cnfeol cv:69</td></tr>
+      </table>
+      <p class="small dim">全球显性库存=LME+SHFE+社库：LME 28.0 万吨处 2026 高位区，沪镍仓单 9.4 万吨同步走高——显性过剩是盘面核心压制。LME 分洲/分仓库分布图见周报 P13（原版裁剪）。</p>
+    </div>
+    <div class="card ss" id="iv-ss">
+      <h3>不锈钢与铬系库存</h3>
+      <table>
+        <tr><th>口径</th><th class="num">读数</th><th>频率/日期</th><th>来源</th></tr>
+        <tr><td>佛山库存（14家样本）</td><td class="num">214,670 吨</td><td>周度 10-16</td><td>Mysteel SS</td></tr>
+        <tr><td>无锡库存（30家样本）</td><td class="num">515,047 吨</td><td>周度 10-16</td><td>Mysteel SS</td></tr>
+        <tr><td>佛山+无锡合计</td><td class="num">72.97 万吨</td><td>周度 10-16</td><td>上两行加总</td></tr>
+        <tr><td>300系库存（总）</td><td class="num">63.86 万吨</td><td>周度（周报口径）</td><td>B01 SS库存!R16</td></tr>
+        <tr><td>不锈钢仓单</td><td class="num">63,503 吨</td><td>日度 10-09</td><td>上期所（ND SS）</td></tr>
+        <tr><td>铬矿港口库存</td><td class="num">498.3 万吨</td><td>周度 9-30</td><td>cnfeol cv:5</td></tr>
+      </table>
+      <p class="small dim">300系库存 63.86 万吨 vs 月产 181 万吨 ≈ 10.6 天产量——库存天数中性（B01 口径 4月 8.2 天）；佛锡合计秋节后去化节奏是 11 月排产的关键输入。</p>
+    </div>
+  </div>
+</div>
+
+<!-- ============ 铬系辅料 ============ -->
+<div class="sec" id="s-chrome">
+  <div class="subnav">
+    <a href="#cr-ore">铬矿</a><a href="#cr-fe">高碳铬铁</a><a href="#cr-other">其他铬铁</a>
+  </div>
+  <div class="grid g2">
+    <div class="card" id="cr-ore">
+      <h3>铬矿价格（元/干吨度，cnfeol 10-08 除注明）</h3>
+      <table class="mini">
+        <tr><th>品种</th><th class="num">价格</th><th>指标ID</th></tr>
+        <tr><td>南非 36-38% 块矿</td><td class="num">52（zhiji 10-16）</td><td>ID00258454</td></tr>
+        <tr><td>南非 40-42% 精矿 / 原矿</td><td class="num">52 / 48</td><td>cv:195 / cv:457</td></tr>
+        <tr><td>土耳其 46-48% 精矿 / 40-42% 块矿</td><td class="num">69 / 70.5</td><td>cv:185 / cv:184</td></tr>
+        <tr><td>伊朗 / 阿尔巴尼亚 / 巴基斯坦 40-42%</td><td class="num">70 / 70 / 70</td><td>cv:460/445/449</td></tr>
+        <tr><td>阿曼 32% / 津巴布韦 48-50%</td><td class="num">57 / 57</td><td>cv:446 / cv:452</td></tr>
+      </table>
+      <h4>铬矿 CIF 外盘（美元/吨，cnfeol 10-08）</h4>
+      <table class="mini">
+        <tr><th>品种</th><th class="num">CIF</th></tr>
+        <tr><td>南非 40-42% 精矿 / 原矿 / 36-38% 块矿</td><td class="num">265 / 250 / 238</td></tr>
+        <tr><td>土耳其 46-48% 粉矿 / 40-42% 块矿</td><td class="num">380 / 335</td></tr>
+        <tr><td>阿尔巴尼亚 / 巴基斯坦 40-42%</td><td class="num">342.5 / 335</td></tr>
+        <tr><td>阿曼 30-32% / 32-34%</td><td class="num">200 / 220</td></tr>
+        <tr><td>津巴布韦 48-50% 集装箱 / 散货</td><td class="num">340 / 355</td></tr>
+      </table>
+      <p class="small dim">量：铬矿进口 8月 236.19 万吨（cv:297）；总消耗 9月 222.61 万吨（cv:1036）；港存 498.3 万吨（9-30）。南非出口中国 8月 167.4 万吨（pvip 明细）。</p>
+    </div>
+    <div class="card" id="cr-fe">
+      <h3>高碳铬铁（元/50基吨，cnfeol 10-09 除注明）</h3>
+      <table class="mini">
+        <tr><th>规格/地区</th><th class="num">价格</th><th>指标ID</th></tr>
+        <tr><td>内蒙（周报图口径）</td><td class="num">7,550（周报运行值 7,675）</td><td>cv:282</td></tr>
+        <tr><td>贵州 / 江苏</td><td class="num">7,700 / 8,000</td><td>cv:615 / cv:947</td></tr>
+        <tr><td>青山钢招（10月）</td><td class="num">7,795</td><td>cv:878（周报图）</td></tr>
+        <tr><td>太钢 / 宝钢 / 酒钢钢招</td><td class="num">7,595（10月）/ 6,995（25-01停）/ 8,905（24-06停）</td><td>cv:237/8/238</td></tr>
+        <tr><td>进口：哈萨克斯坦 / 印度</td><td class="num">9,050 / 7,900</td><td>cv:1064 / cv:902</td></tr>
+        <tr><td>外盘：南非 / 印度（美元/磅铬）</td><td class="num">0.92 / 0.92</td><td>cv:284 / cv:285</td></tr>
+        <tr><td>内蒙生产成本（9月）</td><td class="num">7,609.9</td><td>cv:932</td></tr>
+      </table>
+      <h4>量与开工</h4>
+      <table class="mini">
+        <tr><td>全国高碳铬铁产量</td><td class="num">9月 94.13 万吨（cv:475；周报B01口径 97.38）</td></tr>
+        <tr><td>内蒙开工率</td><td class="num">96.43%（cv:4，9月）</td></tr>
+        <tr><td>高碳铬铁进口</td><td class="num">8月 15.76 万吨（cv:373）</td></tr>
+      </table>
+      <h4 id="cr-other">其他铬铁（元/60基吨，10-09）</h4>
+      <p class="small dim">中碳 12,300（内蒙/河南 cv:617/473）· 低碳 12,700-13,200（cv:467/245/618/468）· 微碳 13,100-13,600（cv:640/641/650）· 高氮 14,300-14,400 元/50基吨（cv:879/626）· 金属铬 59,000-60,000 元/吨（cv:930/929/242）· 硅铬72 8,500 元/吨（cv:469）</p>
+    </div>
+  </div>
+</div>
+
+<!-- ============ 成本曲线（CRU 2026Q3） ============ -->
+<div class="sec" id="s-cost">
+  <div class="subnav">
+    <a href="#cost-ctl">口径与分位数</a><a href="#cost-league">成本联赛表</a><a href="#cost-own">股权结构</a><a href="#cost-assume">价格假设</a>
+  </div>
+  <div class="grid g2">
+    <div class="card" id="cost-ctl">
+      <h3>口径与行业分位数（CRU Nickel Industry Costs 2026Q3，2026 年年度化）</h3>
+      <ul class="small">
+        <li><b>C1</b>=现金成本（副产抵扣后）；<b>C2</b>=C1+折旧；<b>C3</b>=C2+间接费+利息；覆盖 61 个 operation、约 352.4 万吨镍（占全球矿供 85%+）；单位美元/磅（×2204.6=美元/吨）</li>
+        <li>样本含 NPI/锍/HPAL/硫化矿全形态——是「镍价打到哪里会触发减产」的量化标尺</li>
+      </ul>
+      <h4>行业分位数（产量加权，C1）</h4>
+      <table class="mini">
+        <tr><th>分位</th><th>落点 operation</th><th class="num">C1 $/lb</th><th class="num">≈$/t</th><th class="num">C3 $/lb</th></tr>
+        <tr><td>p10</td><td>金川</td><td class="num">0.43</td><td class="num">948</td><td class="num">1.46</td></tr>
+        <tr><td>p25</td><td>PT Vale Sorowako</td><td class="num">6.04</td><td class="num">13,316</td><td class="num">8.05</td></tr>
+        <tr class="hl"><td>p50（中位）</td><td>Barro Alto</td><td class="num">7.07</td><td class="num">15,587</td><td class="num">7.92</td></tr>
+        <tr><td>p75</td><td>Weda Bay</td><td class="num">7.69</td><td class="num">16,954</td><td class="num">8.10</td></tr>
+        <tr><td>p90</td><td>Virtue Dragon（德龙）</td><td class="num">8.08</td><td class="num">17,814</td><td class="num">8.62</td></tr>
+        <tr><td class="dim">加权均值</td><td class="dim">全行业</td><td class="num">5.37</td><td class="num">11,840</td><td class="num">6.86</td></tr>
+      </table>
+      <div class="costbar"></div>
+      <p class="small"><b>现价位置</b>：LME 场外 15,730 美元/吨（10-07）≈ 7.13 $/lb —— 卡在 <b>p50~p75 之间</b>；CRU 自己的 2026 镍价假设 8.0 $/lb（17,637 $/t）高于现价，即按 CRU 成本模型，曲线右端约 1/4 产能在现价下现金亏损。<b>这就是「成本支撑」的量化含义：15,700-16,000 美元以下，减停产会自我繁殖。</b></p>
+      <h4>工艺分层（C1 美元/磅）</h4>
+      <table class="mini">
+        <tr><td>硫化矿副产抵扣区（Norilsk/Kevitsa/Platreef）</td><td class="num">-14.3 ~ 0</td><td>占前 6%，非边际定价者</td></tr>
+        <tr><td>印尼 HPAL 湿法（力勤/华友/QMB/华飞）</td><td class="num">4.65 ~ 6.66</td><td>印尼系内成本最低，2027 放量主力</td></tr>
+        <tr><td>中国 NPI 高炉 BF（德盛/诚德等）</td><td class="num">5.56 ~ 6.00</td><td>低于 RKEF</td></tr>
+        <tr><td>印尼 NPI/RKEF + 镍锍（青山/Harita/WBN/德龙）</td><td class="num">6.04 ~ 8.35</td><td><b>边际定价区（占曲线 50-94 分位）</b></td></tr>
+        <tr><td>中国 RKEF（鑫海/福安/聚合行）</td><td class="num">7.17 ~ 8.69</td><td>边际定价区上半段</td></tr>
+        <tr><td>老红土/高压酸浸尾端（Goro/Ambatovy/Punta Gorda）</td><td class="num">9.79 ~ 14.21</td><td>停产/待售集中区</td></tr>
+      </table>
+    </div>
+    <div class="card" id="cost-league">
+      <h3>成本联赛表 · 按产量排序的主要 operation（2026，C1 $/lb）</h3>
+      <div class="scrollx">
+      <table class="mini">
+        <tr><th>Operation</th><th>国家</th><th class="num">产量kt</th><th class="num">累计%</th><th class="num">C1</th><th class="num">C3</th><th>股权</th></tr>
+        <tr><td>Weda Bay</td><td>印尼</td><td class="num">434.0</td><td class="num">82.2</td><td class="num">7.69</td><td class="num">8.10</td><td>青山51.3/Eramet38.7/Antam10</td></tr>
+        <tr><td>Tsingshan Morowali</td><td>印尼</td><td class="num">386.0</td><td class="num">37.5</td><td class="num">6.06</td><td class="num">6.56</td><td>青山66.3/Bintang Delapan 33.8</td></tr>
+        <tr><td>Virtue Dragon（德龙）</td><td>印尼</td><td class="num">300.0</td><td class="num">93.9</td><td class="num">8.08</td><td class="num">8.62</td><td>江苏德龙 100%</td></tr>
+        <tr><td>Indonesian Matte（锍聚合）</td><td>印尼</td><td class="num">286.0</td><td class="num">59.5</td><td class="num">7.10</td><td class="num">7.91</td><td>—</td></tr>
+        <tr><td>Harita</td><td>印尼</td><td class="num">248.0</td><td class="num">44.6</td><td class="num">6.10</td><td class="num">6.51</td><td>Harita Group 100%</td></tr>
+        <tr><td>Norilsk</td><td>俄罗斯</td><td class="num">201.7</td><td class="num">5.8</td><td class="num">-11.47</td><td class="num">-2.35</td><td>Nornickel 100%</td></tr>
+        <tr><td>山东鑫海 RKEF</td><td>中国</td><td class="num">120.0</td><td class="num">67.0</td><td class="num">7.40</td><td class="num">7.60</td><td>—</td></tr>
+        <tr><td>硕石-华宝</td><td>印尼</td><td class="num">117.0</td><td class="num">62.8</td><td class="num">7.13</td><td class="num">7.90</td><td>—</td></tr>
+        <tr><td>金川</td><td>中国</td><td class="num">98.1</td><td class="num">10.0</td><td class="num">0.43</td><td class="num">1.46</td><td>金川集团 100%</td></tr>
+        <tr><td>Halmahera Lygend（力勤 HPAL）</td><td>印尼</td><td class="num">93.1</td><td class="num">18.9</td><td class="num">4.65</td><td class="num">5.62</td><td>Harita 50/广西银亿 50</td></tr>
+        <tr><td>华友钴业（印尼 HPAL）</td><td>印尼</td><td class="num">73.5</td><td class="num">21.0</td><td class="num">4.84</td><td class="num">5.55</td><td>华友 58%</td></tr>
+        <tr><td>华飞 Huafei（HPAL）</td><td>印尼</td><td class="num">74.0</td><td class="num">48.9</td><td class="num">6.66</td><td class="num">7.74</td><td>青山31/Glaucous30/华友20/EVE17</td></tr>
+        <tr><td>NPI-RKEF（中国聚合行）</td><td>中国</td><td class="num">74.5</td><td class="num">85.3</td><td class="num">7.83</td><td class="num">8.59</td><td>—</td></tr>
+        <tr><td>Gunbuster（德龙 GNI）</td><td>印尼</td><td class="num">71.0</td><td class="num">96.9</td><td class="num">8.35</td><td class="num">8.95</td><td>—</td></tr>
+        <tr><td>QMB 青美邦（HPAL）</td><td>印尼</td><td class="num">64.7</td><td class="num">46.8</td><td class="num">6.63</td><td class="num">8.29</td><td>GEM63/青山10/Brunp10/EcoPro9/Hanwa8</td></tr>
+        <tr><td>PT Vale Sorowako</td><td>印尼</td><td class="num">62.1</td><td class="num">26.6</td><td class="num">6.04</td><td class="num">8.05</td><td>Inalum34/Vale33.9/PTVI20.6/SMM11.5</td></tr>
+        <tr><td>Gwangyang</td><td>韩国</td><td class="num">45.0</td><td class="num">69.9</td><td class="num">7.56</td><td class="num">7.95</td><td>POSCO 51/SMSP 49</td></tr>
+        <tr><td>Onca Puma / Barro Alto</td><td>巴西</td><td class="num">41.0 / 30.1</td><td class="num">22.4/50.5</td><td class="num">5.55 / 7.07</td><td class="num">6.78 / 7.92</td><td>Anglo（待售）</td></tr>
+        <tr><td>Goro / Ambatovy / Punta Gorda</td><td>新喀/马岛/古巴</td><td class="num">35.0/20.0/3.5</td><td class="num">99.3+</td><td class="num">9.79/10.11/14.21</td><td class="num">11.17/17.00/16.06</td><td>曲线最右端</td></tr>
+      </table>
+      </div>
+      <p class="small dim">印尼板块 12 个 operation 合计约 203 万吨、占全行业 58%——成本曲线的中段就是印尼 NPI/锍的成本。全表 61 行见 nickel-industry-costs-q3-2026.xls「League Data」。</p>
+    </div>
+  </div>
+  <div class="grid g2" style="margin-top:12px">
+    <div class="card" id="cost-own">
+      <h3>股权结构速查（非 100% 单一持股的重点资产）</h3>
+      <table class="mini">
+        <tr><th>资产</th><th>股权</th></tr>
+        <tr><td>Weda Bay</td><td>青山 51.3% / Eramet 38.7% / Antam 10%</td></tr>
+        <tr><td>华飞 Huafei</td><td>青山 31% / Glaucous 30% / 华友 20% / EVE 17% / Lindo 2%</td></tr>
+        <tr><td>QMB 青美邦</td><td>格林美 63% / 青山 10% /  Brunp 10% / EcoPro 9% / Hanwa 8%</td></tr>
+        <tr><td>Halmahera Lygend</td><td>Harita 50% / 广西银亿 50%</td></tr>
+        <tr><td>PT Vale Sorowako</td><td>Inalum 34% / Vale 33.9% / PTVI 20.6% / SMM 11.5%</td></tr>
+        <tr><td>SLN Doniambo</td><td>Eramet 60% / SLN 30% / 日本制铁 10%</td></tr>
+        <tr><td>Gwangyang</td><td>POSCO 51% / SMSP 49%</td></tr>
+        <tr><td>Ramu</td><td>中冶 51.9% / 金川 11.1% / 吉恩 11.1% / 酒钢 11.1% 等</td></tr>
+        <tr><td>Coral Bay / Taganito</td><td>Nickel Asia 60/65% + Pacific Metals + Sojitz</td></tr>
+        <tr><td>Moa Nickel</td><td>Sherritt 50% / General Nickel 50%（古巴制裁停摆）</td></tr>
+        <tr><td>Ambatovy</td><td>住友 54.2% / KOMIR 45.8%（待售 AMRI）</td></tr>
+        <tr><td>Cerro Matoso</td><td>CoreX 99.8%（原 South32 资产，已交割）</td></tr>
+        <tr><td>Goro</td><td>Private 51% / Prony 30% / Trafigura 19%</td></tr>
+        <tr><td>Terrafame</td><td>Finnish Minerals 77% / Trafigura 22.7%</td></tr>
+      </table>
+    </div>
+    <div class="card" id="cost-assume">
+      <h3>CRU 2026 价格假设（成本模型的输入）</h3>
+      <table class="mini">
+        <tr><th>项目</th><th class="num">假设</th><th>项目</th><th class="num">假设</th></tr>
+        <tr><td>镍</td><td class="num">8.0 $/lb ≈ 17,637 $/t</td><td>钴</td><td class="num">26.0 $/lb</td></tr>
+        <tr><td>铜</td><td class="num">5.8 $/lb</td><td>金 / PGM / 银</td><td class="num">4,500 / 1,917 $/oz / 68 $/oz</td></tr>
+        <tr><td>煤</td><td class="num">126.3 $/t</td><td>天然气</td><td class="num">3.8 $/GJ</td></tr>
+        <tr><td>石脑油 / WTI</td><td class="num">101.7 / 79.0 $/bbl</td><td>硫磺</td><td class="num">335.0 $/t</td></tr>
+      </table>
+      <h4>使用提醒</h4>
+      <ul class="small">
+        <li>硫磺 335 $/t 是 HPAL 成本敏感项（耗酸大户）；硫磺涨价直接抬 MHP 成本线</li>
+        <li>Ni 假设 17,637 高于现价 ~15,700 —— CRU 平衡表 2026 转 +7kt 的「价格回升」叙事，与其成本模型自洽，但与显性库存新高矛盾：这正是矛盾一的量化表达</li>
+        <li>Platreef C1 -14.3 / C2 72.4 为投产初期摊薄异常值，看图时剔除</li>
+        <li>2025 版成本曲线（镍季度生产报告.xlsx，折镍 144.7 万吨累计产能、BHP 18,000 美元最右端）与本表口径不同：前者是精炼镍全口径曲线，本表是矿山/冶炼 operation 现金成本——对照使用</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- ============ 全球供需展望（CRU 2026-09 版） ============ -->
+<div class="sec" id="s-global">
+  <div class="subnav">
+    <a href="#gl-bal">全球平衡</a><a href="#gl-q">季度节奏</a><a href="#gl-cn">中国 vs 中国以外</a><a href="#gl-id">印尼分项目</a><a href="#gl-mine">矿山分国别</a><a href="#gl-ss">不锈钢分系别</a><a href="#gl-sul">硫酸镍与升水</a>
+  </div>
+  <div class="grid g2">
+    <div class="card" id="gl-bal">
+      <h3>全球精炼镍平衡（CRU 2026-09 版，kt）</h3>
+      <div class="scrollx">
+      <table class="btable mini">
+        <tr><th>年份</th><th>供应</th><th>需求</th><th>平衡</th><th>总库存</th><th>库存/需求(周)</th><th>LME Cash $/t</th></tr>
+        <tr><td>2021</td><td>2,706</td><td>2,885</td><td class="dn">-179</td><td>466</td><td>8.4</td><td>18,488</td></tr>
+        <tr><td>2022</td><td>3,122</td><td>3,064</td><td class="up">+58</td><td>524</td><td>8.9</td><td>26,148</td></tr>
+        <tr><td>2023</td><td>3,421</td><td>3,295</td><td class="up">+127</td><td>651</td><td>10.3</td><td>21,474</td></tr>
+        <tr><td>2024</td><td>3,567</td><td>3,470</td><td class="up">+96</td><td>747</td><td>11.2</td><td>16,812</td></tr>
+        <tr class="hl"><td>2025</td><td>3,918</td><td>3,602</td><td class="up">+316（峰值）</td><td>1,064</td><td>15.4</td><td>15,160</td></tr>
+        <tr class="hl"><td>2026E</td><td>3,887</td><td>3,880</td><td>+7（骤收）</td><td>1,071</td><td>14.3</td><td>17,272E</td></tr>
+        <tr><td>2027E</td><td>4,143</td><td>4,044</td><td class="up">+99</td><td>1,169</td><td>15.0</td><td>17,401E</td></tr>
+        <tr><td>2028E</td><td>4,336</td><td>4,258</td><td class="up">+78</td><td>1,248</td><td>15.2</td><td>18,045E</td></tr>
+        <tr><td>2031E</td><td>5,051</td><td>5,010</td><td class="up">+41</td><td>1,386</td><td>14.4</td><td>19,001E</td></tr>
+      </table>
+      </div>
+      <p class="small"><b>读法</b>：2025 过剩 316kt 是周期峰值；CRU 预测 2026 供应不增反降（3,918→3,887，印尼 RKAB 收紧所致），平衡骤收至 +7kt，2027 起回到 40-100kt 小幅过剩。<b>注意</b>：CRU 2026E 价格 17,272 美元显著高于当前市价 15,700——预测与现实的分歧本身就是跟踪点（要么库存去化兑现、要么下修）。</p>
+      <h4 id="gl-q">季度节奏（25Q1-27Q4，kt）</h4>
+      <div class="scrollx">
+      <table class="btable mini">
+        <tr><th>季度</th><th>25Q1</th><th>25Q2</th><th>25Q3</th><th>25Q4</th><th>26Q1</th><th>26Q2</th><th>26Q3</th><th>26Q4</th><th>27Q1</th><th>27Q2</th></tr>
+        <tr><td>供应</td><td>947</td><td>976</td><td>1,002</td><td>992</td><td>970</td><td>952</td><td>963</td><td>1,002</td><td>1,027</td><td>1,042</td></tr>
+        <tr><td>需求</td><td>896</td><td>898</td><td>896</td><td>912</td><td>929</td><td>1,000</td><td>979</td><td>973</td><td>996</td><td>1,020</td></tr>
+        <tr class="hl"><td>平衡</td><td>+51</td><td>+79</td><td>+107</td><td>+81</td><td>+42</td><td class="dn">-48</td><td class="dn">-16</td><td>+29</td><td>+32</td><td>+22</td></tr>
+        <tr><td>总库存</td><td>795</td><td>874</td><td>980</td><td>1,061</td><td>1,102</td><td>1,055</td><td>1,039</td><td>1,068</td><td>1,099</td><td>1,121</td></tr>
+        <tr><td>LME Cash</td><td>15,571</td><td>15,171</td><td>15,015</td><td>14,892</td><td>17,356</td><td>18,131</td><td>16,601</td><td>17,000E</td><td>17,402E</td><td>17,801E</td></tr>
+      </table>
+      </div>
+      <p class="small dim">CRU 剧本：25Q2-Q4 过剩高峰累库 → 26Q2-Q3 转短缺去库 → 2027 重回小幅过剩。对照现实：26Q3 实际仍在累库（LME 28.5 万吨新高）——CRU 的去库剧本已落后一拍。</p>
+    </div>
+    <div class="card" id="gl-cn">
+      <h3>中国 vs 中国以外：结构性分化（kt）</h3>
+      <table class="btable mini">
+        <tr><th>地区</th><th>指标</th><th class="num">2022</th><th class="num">2024</th><th class="num">2025</th><th class="num">2026E</th><th class="num">2028E</th><th class="num">2031E</th></tr>
+        <tr><td>中国</td><td>供应/需求</td><td class="num">953/1,803</td><td class="num">1,067/2,177</td><td class="num">1,183/2,308</td><td class="num">1,240/2,528</td><td class="num">1,265/2,741</td><td class="num">1,393/3,073</td></tr>
+        <tr class="hl"><td>中国</td><td>平衡</td><td class="num up">-850</td><td class="num up">-1,110</td><td class="num up">-1,124</td><td class="num up">-1,288</td><td class="num up">-1,475</td><td class="num up">-1,680</td></tr>
+        <tr><td>中国以外</td><td>供应/需求</td><td class="num">2,169/1,261</td><td class="num">2,500/1,293</td><td class="num">2,735/1,294</td><td class="num">2,647/1,352</td><td class="num">3,071/1,517</td><td class="num">3,658/1,937</td></tr>
+        <tr class="hl"><td>中国以外</td><td>平衡</td><td class="num">+908</td><td class="num">+1,207</td><td class="num">+1,441</td><td class="num">+1,294</td><td class="num">+1,554</td><td class="num">+1,721</td></tr>
+      </table>
+      <p class="small"><b>镍市最核心的结构事实</b>：中国缺口持续扩大（-1.1Mt→-1.68Mt），全球过剩全部产生在中国以外（=印尼）。「过剩」与「缺口」并存——中国靠进口填补，所以<b>进口盈亏、关税、汇率、印尼出口政策</b>才是中国价格的直接变量，全球平衡只是背景板。</p>
+      <h4 id="gl-mine">矿山供应分国别（kt Ni）</h4>
+      <table class="btable mini">
+        <tr><th>国家</th><th class="num">2020</th><th class="num">2023</th><th class="num">2025</th><th class="num">2026E</th><th class="num">2031E</th><th>趋势</th></tr>
+        <tr><td>印尼</td><td class="num">779</td><td class="num">2,020</td><td class="num">2,632</td><td class="num">2,527</td><td class="num">3,693</td><td>占全球 63%→71%</td></tr>
+        <tr><td>菲律宾</td><td class="num">392</td><td class="num">375</td><td class="num">488</td><td class="num">498</td><td class="num">406</td><td>补缺上限显现</td></tr>
+        <tr><td>俄罗斯</td><td class="num">239</td><td class="num">209</td><td class="num">199</td><td class="num">190</td><td class="num">219</td><td>缓降后稳</td></tr>
+        <tr><td>新喀里多尼亚</td><td class="num">198</td><td class="num">115</td><td class="num">143</td><td class="num">163</td><td class="num">143</td><td>动乱后修复有限</td></tr>
+        <tr><td>加拿大</td><td class="num">167</td><td class="num">115</td><td class="num">135</td><td class="num">153</td><td class="num">189</td><td>小幅回升</td></tr>
+        <tr><td>澳大利亚</td><td class="num">164</td><td class="num">105</td><td class="num">50</td><td class="num">43</td><td class="num">35</td><td class="up">崩塌式退出</td></tr>
+        <tr><td>中国</td><td class="num">105</td><td class="num">110</td><td class="num">130</td><td class="num">130</td><td class="num">133</td><td>平稳</td></tr>
+        <tr><td>古巴</td><td class="num">49</td><td class="num">42</td><td class="num">39</td><td class="num">18</td><td class="num">44</td><td>制裁停摆</td></tr>
+        <tr><td>缅甸</td><td class="num">23</td><td class="num">0</td><td class="num">0</td><td class="num">0</td><td class="num">0</td><td class="up">归零</td></tr>
+        <tr class="hl"><td>全球合计</td><td class="num">2,488</td><td class="num">3,615</td><td class="num">4,161</td><td class="num">4,034</td><td class="num">5,167</td><td>2026E 唯一收缩年</td></tr>
+      </table>
+    </div>
+  </div>
+  <div class="grid g2" style="margin-top:12px">
+    <div class="card" id="gl-id">
+      <h3>印尼分项目产量（CRU，kt Ni）——「边际看印尼」的明细账本</h3>
+      <table class="btable mini">
+        <tr><th>产品线</th><th class="num">2023</th><th class="num">2024</th><th class="num">2025</th><th class="num">2026E</th><th class="num">2027E</th><th class="num">2028E</th><th class="num">2031E</th></tr>
+        <tr><td>NPI</td><td class="num">1,369</td><td class="num">1,509</td><td class="num">1,727</td><td class="num dn">1,636（-5%）</td><td class="num">1,725</td><td class="num">1,858</td><td class="num">2,386</td></tr>
+        <tr><td>HPAL（MHP）</td><td class="num">184</td><td class="num">329</td><td class="num">456</td><td class="num dn">398（-13%）</td><td class="num">686</td><td class="num">849</td><td class="num">1,061</td></tr>
+        <tr><td>高冰镍</td><td class="num">224</td><td class="num">298</td><td class="num">278</td><td class="num up">424（冲顶）</td><td class="num">275</td><td class="num">162</td><td class="num">66</td></tr>
+        <tr class="hl"><td>合计</td><td class="num">1,777</td><td class="num">2,136</td><td class="num">2,461</td><td class="num">2,459</td><td class="num">2,686</td><td class="num">2,868</td><td class="num">3,514</td></tr>
+      </table>
+      <h4>NPI 主力项目（2025 → 2026E → 2028E，kt）</h4>
+      <table class="btable mini">
+        <tr><td>IWIP 青山系园区其他</td><td class="num">448 → 349 → 370</td><td>2026 减 99kt=RKAB 收紧主承力项</td></tr>
+        <tr><td>Virtue Dragon 德龙</td><td class="num">255 → 231 → 240</td><td>成本 p90，减产敏感</td></tr>
+        <tr><td>IMIP 中苏拉威西园区其他</td><td class="num">247 → 225 → 260</td><td>—</td></tr>
+        <tr><td>力勤 Obi（RKEF）</td><td class="num">148 → 191 → 220</td><td>逆势扩产</td></tr>
+        <tr><td>Gunbuster 德龙 GNI</td><td class="num">181 → 137 → 168</td><td>2026 减 44kt</td></tr>
+        <tr><td>Baha Dobi</td><td class="num">0 → 11 → 70</td><td>新项目爬坡</td></tr>
+      </table>
+      <h4>HPAL 项目爬坡节奏（2025 → 2026E → 2027E → 2028E，kt）</h4>
+      <table class="btable mini">
+        <tr><td>力勤 Halmahera</td><td class="num">138 → 105 → 114 → 123</td><td>运营</td></tr>
+        <tr><td>华飞 Huafei</td><td class="num">120 → 88 → 103 → 114</td><td>2026 检修年</td></tr>
+        <tr><td>华越 Huayue</td><td class="num">85 → 72 → 79 → 79</td><td>运营</td></tr>
+        <tr><td>青美邦 QMB</td><td class="num">57 → 30 → 41 → 54</td><td>运营</td></tr>
+        <tr><td>蓝焰 Blue Sparking</td><td class="num">0 → 31 → 47 → 57</td><td>2026 投产</td></tr>
+        <tr><td>ENC</td><td class="num">0 → 12 → 41 → 62</td><td>2026 投产（四大变量③）</td></tr>
+        <tr><td>Pomalaa / Sulawesi Ni-Co / GCNS / BNSI</td><td class="num">0 → 10 → 165 → 265</td><td>Committed，2027 集中放量</td></tr>
+      </table>
+      <p class="small"><b>叙事主线</b>：2026 = NPI 减产（RKAB）+ HPAL 短暂回落（华飞检修）+ 高冰镍冲顶（转化窗口最后一波）；<b>2027 起增量全靠 HPAL</b>（+288kt/年）。做 2027 平衡表时，HPAL 爬坡兑现率是唯一重要的供应假设。</p>
+    </div>
+    <div class="card" id="gl-ss">
+      <h3>不锈钢分系别产量（CRU，kt 粗钢）</h3>
+      <table class="btable mini">
+        <tr><th>系别/地区</th><th class="num">2022</th><th class="num">2024</th><th class="num">2025</th><th class="num">2026E</th><th class="num">2028E</th><th class="num">2031E</th></tr>
+        <tr><td>全球合计</td><td class="num">56,768</td><td class="num">64,038</td><td class="num">64,934</td><td class="num">67,413</td><td class="num">73,755</td><td class="num">84,770</td></tr>
+        <tr><td>中国合计</td><td class="num">33,588</td><td class="num">40,487</td><td class="num">41,304</td><td class="num">43,116</td><td class="num">47,211</td><td class="num">53,203</td></tr>
+        <tr><td>印尼合计（≈全300系）</td><td class="num">4,942</td><td class="num">5,037</td><td class="num">5,093</td><td class="num">5,336</td><td class="num">6,201</td><td class="num">9,282</td></tr>
+        <tr class="hl"><td>300系 全球</td><td class="num">33,110</td><td class="num">37,547</td><td class="num">38,037</td><td class="num">40,174</td><td class="num">43,905</td><td class="num">51,280</td></tr>
+        <tr><td>300系 中国</td><td class="num">16,962</td><td class="num">21,242</td><td class="num">21,585</td><td class="num">23,087</td><td class="num">25,022</td><td class="num">28,198</td></tr>
+        <tr><td>200系 全球 / 400系 全球</td><td class="num">12,602 / 11,056</td><td class="num">14,088 / 12,402</td><td class="num">14,316 / 12,581</td><td class="num">14,450 / 12,788</td><td class="num">16,310 / 13,541</td><td class="num">19,237 / 14,252</td></tr>
+      </table>
+      <p class="small dim">300 系占全球 59-60% 且份额缓升；印尼 2031 年冲到 928 万吨（+82%）——不锈钢的「边际看印尼」同样成立。不锈钢耗镍全球 2,389kt（2025）→3,240kt（2031E）。</p>
+      <h4 id="gl-sul">硫酸镍平衡（kt Ni）与镍升水</h4>
+      <table class="btable mini">
+        <tr><th>硫酸镍</th><th class="num">2022</th><th class="num">2024</th><th class="num">2025</th><th class="num">2026E</th><th class="num">2028E</th><th class="num">2031E</th></tr>
+        <tr><td>需求 / 供应</td><td class="num">536/500</td><td class="num">527/544</td><td class="num">538/547</td><td class="num">652/663</td><td class="num">724/739</td><td class="num">911/910</td></tr>
+        <tr class="hl"><td>平衡</td><td class="num dn">-35</td><td class="num">+17</td><td class="num">+8</td><td class="num">+11</td><td class="num">+15</td><td class="num dn">-0.3（转微缺）</td></tr>
+        <tr><td>中国现货 DAP 元/吨</td><td class="num">40,352</td><td class="num">27,983</td><td class="num">27,066</td><td class="num">29,677E</td><td class="num">29,364E</td><td class="num">30,844E</td></tr>
+        <tr><td>对 LME 贴水 $/t Ni</td><td class="num">-2,312</td><td class="num">-1,349</td><td class="num">-219</td><td class="num">-200E</td><td class="num">-1,000E</td><td class="num">-1,000E</td></tr>
+      </table>
+      <table class="mini" style="margin-top:6px">
+        <tr><th>镍升水（2025 实际）</th><th class="num">读数</th></tr>
+        <tr><td>欧洲裁剪板/镍豆 EXW</td><td class="num">386 / 403 $/t</td></tr>
+        <tr><td>美国裁剪板/镍豆 DDP</td><td class="num">61.4 / 58.5 ¢/lb</td></tr>
+        <tr><td>中国全板 CIF / 全板镍豆 CIF</td><td class="num">50 / 150 $/t（2022 年曾 410/417——逼空遗产已清零）</td></tr>
+        <tr><td>中国 MHP 镍计价系数 CIF</td><td class="num">85.4%（2025）→ SMM 口径 10-16 已降至 77.5%</td></tr>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ============ 平衡表工坊 ============ -->
+<div class="sec" id="s-balance">
+  <div class="subnav">
+    <a href="#bl-how">方法论</a><a href="#bl-map">五张表地图</a><a href="#bl-ore">矿月度</a><a href="#bl-ni">电镍月度</a><a href="#bl-npi">NPI月度</a><a href="#bl-all">全镍月度</a><a href="#bl-ss">不锈钢月度</a><a href="#bl-glb">全球层</a><a href="#bl-tpl">空模板</a><a href="#bl-diy">自己动手</a>
+  </div>
+  <div class="card" id="bl-how">
+    <h3>月度平衡表方法论（永安范式，表01_镍产业数据.xlsx 实测结构）</h3>
+    <div class="formula">表观消费 = 产量 + 净进口 + 国储 − 库存变化　　（电镍表最干净：T = E + M + N − S）</div>
+    <div class="formula">平衡 = 供应合计 − 消费合计　→　正值=过剩（压价格），负值=缺口（托价格）　→　与库存变化互为验证</div>
+    <ul class="small">
+      <li><b>五张中国平衡表共用同一范式</b>：矿（进口→NPI 原料）→ NPI（中印产量+进出口→不锈钢原料）→ 电镍（产量+进出口+国储+库存→表消）→ 全镍（硫酸镍/电镍/NPI 全加总）→ SS（分系别产量+进出口+库存→表消+库销比）。矿端定 NPI 上限，NPI 定不锈钢成本，电镍定盘面价格，SS 定需求兑现。</li>
+      <li><b>单位纪律</b>：年度行=千吨，月度行=吨（矿表进口为实物吨、金属量单列）；镍铁进出口永远实物吨与金属吨并列（品位 ~13.5% 换算）。</li>
+      <li><b>表消是倒算残差</b>：库存缺月则公式停算（SS 表 2026-05 起表消断更就是这个原因）——自己建表时库存列优先级最高。</li>
+      <li><b>平衡列对口径敏感</b>：NPI 表有 4 个平衡口径（不含 feni / 中印 / 中印+废钢 / 除去印尼出口海外），相邻口径可差 ±3 万金属吨/月——引用时必须注明口径。</li>
+    </ul>
+  </div>
+  <div class="card" id="bl-map" style="margin-top:12px">
+    <h3>五张表 × 关键科目 × 数据源速查（做表时按此取数）</h3>
+    <div class="scrollx">
+    <table class="mini">
+      <tr><th>表</th><th>核心科目（列）</th><th>数据源（表内标注）</th><th>最新实际月</th></tr>
+      <tr><td>中国平衡（矿）</td><td>镍矿进口（分菲/印尼/新喀等 8 列）·镍精矿/红土矿实物与金属·港口库存·库存消费月·NPI 供需·镍锍进口·电镍产量·过剩/缺口</td><td>中国海关 / ATK / 钢联</td><td>2026-08</td></tr>
+      <tr><td>中国平衡（NPI）</td><td>印尼 NPI 产量·印尼不锈钢用 NPI·中国镍铁产量·中印合计·镍铁进口（湿吨/金属吨）·镍铁厂库存·300系耗 NPI·<b>4 口径平衡列</b>·NPI 均价</td><td>Mysteel / 中联金 / 钢联</td><td>2026-08（部分列至 10 月预估）</td></tr>
+      <tr><td>中国平衡（电镍）</td><td>印尼电镍·电解镍产量·进口（俄镍/挪威单列）·出口·净进口·国储·镍板/镍豆/保税库存·库存变化·<b>表观消费</b>·硫酸镍·下游 PMI 五列·非不锈钢耗镍（电池/电镀/合金）</td><td>Mysteel / 中国海关 / SMM / 镍吧</td><td>2026-08（09 起为预估占位）</td></tr>
+      <tr><td>中国平衡（全镍）</td><td>硫酸镍+电解镍+NPI 总产量·五类进口·出口·净进口两口径·库存三列·表观消费·不锈钢耗镍（分 200/300/400 系+废钢比）·非不锈钢耗镍·总消费·平衡</td><td>SMM / Mysteel / 海关 / 钢联 / 镍吧</td><td>2026-08</td></tr>
+      <tr><td>中国平衡SS</td><td>印尼产量·200/300/400 系产量（中联金）·中印 300 合计·进出口（含板坯/冷热轧）·佛锡库存·表观消费·库销比·钢厂库存·废不锈钢采购·废料使用比·冷轧价格·加权利润</td><td>中联金 / 中国海关 / Mysteel / Woodmac</td><td>2026-08（库存/表消列止 04 月）</td></tr>
+    </table>
+    </div>
+    <p class="small dim">全球层对照表：全球平衡(BH)=永安自制年度模型（至 2030E）；全球平衡(INSG)=月度至 2025-10（断更）；全球平衡（电镍）CRU=年度至 2027E；全球平衡(SS)CRU=⚠ 2019 年废弃勿用。</p>
+  </div>
+  <div class="grid g2" style="margin-top:12px">
+    <div class="card" id="bl-ore">
+      <h3>① 镍矿月度平衡（进口 万吨/月·金属量 吨/月，B01「中国平衡（矿）」）</h3>
+      <div class="scrollx">
+      <table class="btable mini">
+        <tr><th>月</th><th>菲律宾</th><th>危地马拉</th><th>新喀里多尼亚</th><th>澳大利亚</th><th>进口合计(实物)</th><th>红土矿(金属量,吨)</th><th>镍锍净进口(金属,吨)</th></tr>
+        <tr><td>25-11</td><td>302.1</td><td>8.7</td><td>13.9</td><td>2.1</td><td>333.9</td><td>25,759</td><td>21,632</td></tr>
+        <tr><td>25-12</td><td>160.9</td><td>2.1</td><td>14.5</td><td>0</td><td>199.3</td><td>14,627</td><td>20,935</td></tr>
+        <tr><td>26-01</td><td>108.3</td><td>8.5</td><td>11.5</td><td>2.1</td><td>138.4</td><td>11,216</td><td>32,689</td></tr>
+        <tr><td>26-02</td><td>97.7</td><td>2.1</td><td>13.0</td><td>0</td><td>122.4</td><td>9,902</td><td>29,839</td></tr>
+        <tr><td>26-03</td><td>139.3</td><td>11.7</td><td>4.4</td><td>2.1</td><td>163.2</td><td>12,589</td><td>39,780</td></tr>
+        <tr><td>26-04</td><td>339.0</td><td>8.5</td><td>6.2</td><td>0</td><td>366.4</td><td>28,424</td><td>34,708</td></tr>
+        <tr><td>26-05</td><td>547.6</td><td>5.1</td><td>22.8</td><td>0</td><td>595.9</td><td>46,344</td><td>24,411</td></tr>
+        <tr><td>26-06</td><td>544.7</td><td>17.1</td><td>11.7</td><td>2.1</td><td>586.1</td><td>45,226</td><td>20,259</td></tr>
+        <tr><td>26-07</td><td>538.5</td><td>5.2</td><td>29.5</td><td>0</td><td>593.3</td><td>45,989</td><td>31,544</td></tr>
+        <tr class="hl"><td>26-08</td><td>552.6</td><td>4.2</td><td>21.5</td><td>1.0</td><td>596.5</td><td>45,736</td><td>17,683</td></tr>
+      </table>
+      </div>
+      <p class="small"><b>读法</b>：镍矿进口=绝对季节性主导——菲律宾雨季（11-3 月）月度进口仅 1.0-1.6 万吨级，5-8 月旱季放量到 5.9 万吨级（实物 596 万吨/月）；<b>印尼对中国矿出口恒为 0</b>（禁矿后只出不进成品），中国矿端=菲律宾一家独大（92%+）；镍锍净进口金属自 3 月 3.98 万吨高点逐月回落至 1.77 万吨——印尼中间品收缩在矿表同样可见。品位假设列：印尼回收率 0.9、印尼矿品位 2%、菲矿 1%（表内固定参数 AQ/AR/AS）。</p>
+    </div>
+    <div class="card" id="bl-ni">
+      <h3>② 电镍月度平衡（吨/月，B01「中国平衡（电镍）」）</h3>
+      <div class="scrollx">
+      <table class="btable mini">
+        <tr><th>月</th><th>产量</th><th>进口</th><th>出口</th><th>净进口</th><th>镍板库存</th><th>库存变化</th><th>表观消费</th></tr>
+        <tr><td>25-11</td><td>28,392</td><td>12,671</td><td>10,926</td><td>1,744</td><td>55,349</td><td>+6,845</td><td>23,291</td></tr>
+        <tr><td>25-12</td><td>29,058</td><td>23,394</td><td>13,296</td><td>10,098</td><td>58,920</td><td>+3,571</td><td>35,585</td></tr>
+        <tr><td>26-01</td><td>35,225</td><td>22,066</td><td>3,904</td><td>18,162</td><td>70,643</td><td>+11,223</td><td>42,164</td></tr>
+        <tr><td>26-02</td><td>32,600</td><td>16,931</td><td>2,176</td><td>14,755</td><td>76,538</td><td>+6,395</td><td>40,960</td></tr>
+        <tr><td>26-03</td><td>37,337</td><td>19,159</td><td>2,284</td><td>16,875</td><td>89,808</td><td>+12,770</td><td>41,442</td></tr>
+        <tr><td>26-04</td><td>35,250</td><td>35,483</td><td>1,035</td><td>34,448</td><td>100,638</td><td>+10,830</td><td class="up">58,868</td></tr>
+        <tr><td>26-05</td><td>33,751</td><td>30,122</td><td>658</td><td>29,463</td><td>116,909</td><td>+16,271</td><td>46,943</td></tr>
+        <tr><td>26-06</td><td>31,760</td><td>25,691</td><td>1,811</td><td>23,879</td><td>129,255</td><td>+13,346</td><td>42,293</td></tr>
+        <tr><td>26-07</td><td>30,787</td><td>20,942</td><td>598</td><td>20,344</td><td>131,439</td><td>+1,184</td><td>49,947</td></tr>
+        <tr class="hl"><td>26-08</td><td>28,867</td><td>16,986</td><td>2,640</td><td>14,346</td><td>130,292</td><td class="dn">-1,447</td><td>44,660</td></tr>
+      </table>
+      </div>
+      <p class="small"><b>读法</b>：产量自 3 月高点 37,337 逐月下台阶至 28,867（-23%）——高价刺激→过剩→减产的完整循环；上半年镍板库存 55,349→131,439 翻倍有余（累库 = 过剩的物理形态）；<b>8 月首次去库（-1,447）+ 进口萎缩至 1.7 万吨</b>，是平衡收窄的早期信号。验算示例（26-08）：28,867 + 14,346 + 0 − (−1,447) = 44,660 ✓。26-09 起为表内预估占位（产量 28,651/28,375/30,000/30,000），非实际值。</p>
+    </div>
+    <div class="card" id="bl-npi">
+      <h3>③ NPI 月度平衡（金属吨/月，B01「中国平衡（NPI）」）</h3>
+      <div class="scrollx">
+      <table class="btable mini">
+        <tr><th>月</th><th>印尼产量</th><th>中国产量</th><th>中印合计</th><th>进口(湿吨)</th><th>进口(金属)</th><th>表观消费</th><th>NPI平衡(中印)</th><th>NPI均价(元/镍点)</th></tr>
+        <tr><td>26-01</td><td>144,100</td><td>21,400</td><td>165,500</td><td>909,879</td><td>113,146</td><td>138,946</td><td class="dn">-11,564</td><td>—</td></tr>
+        <tr><td>26-02</td><td>124,200</td><td>21,100</td><td>145,300</td><td>831,658</td><td>105,502</td><td>127,602</td><td class="up">+22,052</td><td>—</td></tr>
+        <tr><td>26-03</td><td>132,900</td><td>22,400</td><td>155,300</td><td>823,448</td><td>103,881</td><td>131,881</td><td class="dn">-30,820</td><td>1,097</td></tr>
+        <tr><td>26-04</td><td>139,800</td><td>24,400</td><td>164,200</td><td>849,801</td><td>107,112</td><td>125,112</td><td class="dn">-26,416</td><td>1,104</td></tr>
+        <tr><td>26-05</td><td>138,800</td><td>27,200</td><td>166,000</td><td>909,849</td><td>113,457</td><td>149,657</td><td class="dn">-29,832</td><td>1,155</td></tr>
+        <tr><td>26-06</td><td>136,200</td><td>28,100</td><td>164,300</td><td>755,875</td><td>95,367</td><td>126,467</td><td class="dn">-23,532</td><td>1,150</td></tr>
+        <tr><td>26-07</td><td>138,100</td><td>28,800</td><td>166,900</td><td>641,357</td><td>81,350</td><td>113,550</td><td>—</td><td>—</td></tr>
+        <tr class="hl"><td>26-08</td><td>146,900</td><td>27,600</td><td>174,500</td><td>961,370</td><td>120,030</td><td>146,530</td><td>—</td><td>—</td></tr>
+        <tr><td class="dim">26-09E</td><td class="dim">144,600</td><td class="dim">26,700</td><td class="dim">171,300</td><td class="dim" colspan="5">（09 起仅产量列，其余未填）</td></tr>
+        <tr><td class="dim">26-10E</td><td class="dim">149,000</td><td class="dim">27,200</td><td class="dim">176,200</td><td class="dim" colspan="5"></td></tr>
+      </table>
+      </div>
+      <p class="small"><b>读法</b>：中印平衡口径 3-6 月连续缺口 -2.4~-3.1 万金属吨/月（300 系高排产消化），7-8 月产量回升后缺口收窄；镍铁厂库存仅 3,500 金属吨（8 月）——<b>NPI 链是全镍产业链里库存最薄的一环，价格弹性因此最大</b>。四口径差异示例（26-03）：不含 feni -14,445 / 中印 -30,820 / +废钢 -7,817 / 除印尼出口海外 -9,850（金属吨）。</p>
+    </div>
+    <div class="card" id="bl-all">
+      <h3>④ 全镍月度平衡（金属吨/月，B01「中国平衡（全镍）」）</h3>
+      <div class="scrollx">
+      <table class="btable mini">
+        <tr><th>月</th><th>硫酸镍产量</th><th>电解镍产量</th><th>NPI产量</th><th>总产量</th><th>进口合计</th><th>出口合计</th><th>净进口(含镍铁)</th><th>净进口(含中间品)</th><th>表观消费</th></tr>
+        <tr><td>26-01</td><td>33,616</td><td>35,225</td><td>21,400</td><td>84,526</td><td>142,181</td><td>4,029</td><td>138,153</td><td>90,180</td><td>215,856</td></tr>
+        <tr><td>26-02</td><td>30,365</td><td>32,600</td><td>21,100</td><td>79,360</td><td>127,994</td><td>2,209</td><td>125,785</td><td>73,625</td><td>199,750</td></tr>
+        <tr><td>26-03</td><td>35,120</td><td>37,337</td><td>22,400</td><td>89,417</td><td>129,569</td><td>2,398</td><td>127,171</td><td>95,383</td><td>209,418</td></tr>
+        <tr><td>26-04</td><td>35,615</td><td>35,250</td><td>24,400</td><td>89,770</td><td>149,149</td><td>1,111</td><td>148,037</td><td>104,870</td><td>220,577</td></tr>
+        <tr><td>26-05</td><td>36,339</td><td>33,751</td><td>27,200</td><td>91,665</td><td>147,761</td><td>709</td><td>147,052</td><td>81,918</td><td>231,446</td></tr>
+        <tr><td>26-06</td><td>36,465</td><td>31,760</td><td>28,100</td><td>90,450</td><td>127,617</td><td>1,965</td><td>125,652</td><td>70,201</td><td>205,756</td></tr>
+        <tr><td>26-07</td><td>35,675</td><td>30,787</td><td>28,800</td><td>88,827</td><td>106,603</td><td>714</td><td>105,889</td><td>74,821</td><td>196,932</td></tr>
+        <tr class="hl"><td>26-08</td><td>37,780</td><td>28,867</td><td>27,600</td><td>87,532</td><td>141,543</td><td>2,640</td><td>138,903</td><td>58,231</td><td>226,782</td></tr>
+      </table>
+      </div>
+      <p class="small"><b>读法</b>：全镍=把硫酸镍/电镍/NPI 加总后的中国总盘子——月表消 19.7~23.1 万金属吨；<b>两个净进口口径的分叉就是两条产品线的故事</b>：含镍铁口径 13.9 万吨（不锈钢线，印尼 NPI 持续流入）vs 含中间品口径 5.8 万吨（电池线，8 月骤降——MHP/高冰镍进口收缩的直接证据）。进口合计五组分：未锻轧镍/镍铁金属量/镍盐/镍中间品/高冰镍（26-08：16,986 / 120,030 / 4,526 / 21,676 / 17,683）。</p>
+    </div>
+  </div>
+  <div class="grid g2" style="margin-top:12px">
+    <div class="card" id="bl-ss">
+      <h3>⑤ 不锈钢月度平衡（吨钢/月，B01「中国平衡SS」）</h3>
+      <div class="scrollx">
+      <table class="btable mini">
+        <tr><th>月</th><th>印尼产量</th><th>200系</th><th>300系</th><th>400系</th><th>合计</th><th>进口</th><th>出口</th><th>净进口</th><th>佛锡库存</th><th>表观消费</th><th>库销比(天)</th></tr>
+        <tr><td>26-01</td><td>412,000</td><td>1,042,500</td><td>1,801,300</td><td>590,900</td><td>3,434,700</td><td>130,500</td><td>232,600</td><td>-102,100</td><td>834,644</td><td>3,331,175</td><td>7.8</td></tr>
+        <tr><td>26-02</td><td>375,000</td><td>817,600</td><td>1,165,600</td><td>547,200</td><td>2,530,400</td><td>109,200</td><td>260,000</td><td>-150,800</td><td>1,022,321</td><td>2,191,623</td><td>13.1</td></tr>
+        <tr><td>26-03</td><td>460,000</td><td>1,137,000</td><td>1,866,500</td><td>654,300</td><td>3,657,800</td><td>136,200</td><td>310,200</td><td>-174,000</td><td>986,030</td><td>3,509,891</td><td>8.7</td></tr>
+        <tr><td>26-04</td><td>470,000</td><td>1,104,000</td><td>1,912,700</td><td>633,000</td><td>3,649,700</td><td>169,700</td><td>394,300</td><td>-224,600</td><td>946,575</td><td>3,459,955</td><td>8.2</td></tr>
+        <tr><td>26-05</td><td>462,000</td><td>1,074,700</td><td>1,985,900</td><td>656,500</td><td>3,717,100</td><td>91,100</td><td>415,700</td><td>-324,600</td><td colspan="3" rowspan="4" class="dim">库存/表消列 2026-05 起停填（Mysteel 新口径切换），进出口与产量照常</td></tr>
+        <tr><td>26-06</td><td>432,000</td><td>886,000</td><td>1,915,900</td><td>621,100</td><td>3,423,000</td><td>120,200</td><td>446,300</td><td>-326,100</td></tr>
+        <tr><td>26-07</td><td>405,000</td><td>1,052,800</td><td>1,791,500</td><td>646,200</td><td>3,490,500</td><td>116,400</td><td>391,400</td><td>-275,000</td></tr>
+        <tr class="hl"><td>26-08</td><td>400,000</td><td>1,069,500</td><td>1,896,700</td><td>626,700</td><td>3,592,900</td><td>140,900</td><td>445,700</td><td>-304,800</td></tr>
+      </table>
+      </div>
+      <p class="small"><b>读法</b>：中国每月净出口 27-33 万吨（出口 44.6 万吨创新高）= 国内过剩外溢；300 系 5 月见顶 198.6 万吨后回落，8 月 189.7 万吨；库销比 8-13 天窄幅。配套：废不锈钢采购（32 家）8 月 67.7 万吨、废料镍占比 20.7%——<b>废钢比每 +1pp ≈ 替代原生镍约 670 吨/月</b>，是做 NPI 需求修正的第一变量。口径注意：本表产量=中联金（8 月 359 万吨），Mysteel 33 家口径=309 万吨，趋势一致、水平不同。</p>
+    </div>
+    <div class="card" id="bl-glb">
+      <h3>⑥ 全球层对照</h3>
+      <h4>永安自制全球年度平衡（B01「全球平衡(BH)」，kt 金属）</h4>
+      <table class="btable mini">
+        <tr><th>年</th><th>镍矿产量</th><th>镍金属产量</th><th>镍金属消费</th><th>金属平衡</th></tr>
+        <tr><td>2022</td><td>3,350</td><td>3,129</td><td>2,964</td><td class="up">+165.5</td></tr>
+        <tr><td>2023</td><td>3,775</td><td>3,510</td><td>3,424</td><td class="up">+85.5</td></tr>
+        <tr><td>2024</td><td>4,034</td><td>3,793</td><td>3,649</td><td class="up">+144.0</td></tr>
+        <tr><td>2025</td><td>4,302</td><td>4,094</td><td>3,819</td><td class="up">+274.6</td></tr>
+        <tr><td>2026E</td><td>4,514</td><td>4,337</td><td>3,987</td><td class="up">+349.9</td></tr>
+        <tr><td>2027E</td><td>4,645</td><td>4,515</td><td>4,115</td><td class="up">+399.6</td></tr>
+        <tr><td>2030E</td><td>4,671</td><td>4,589</td><td>4,423</td><td class="up">+165.2</td></tr>
+      </table>
+      <p class="small"><b>⚠ 与 CRU 方向相反</b>：BH 模型 2026-27 过剩扩大（+350/+400kt），CRU 9 月版 2026 骤收至 +7kt——分歧核心在印尼 NPI 减产假设（CRU 已按 RKAB 收紧打入 -5%）。<b>自己做平衡表时，这两套就是乐观/悲观情景的现成边界。</b></p>
+      <h4>INSG 月度（kt，断更于 2025-10）</h4>
+      <table class="btable mini">
+        <tr><th>月</th><th>全球原生镍产量</th><th>消费</th><th>平衡</th><th>中国平衡</th><th>中国以外平衡</th></tr>
+        <tr><td>25-06</td><td>313.7</td><td>291.3</td><td class="up">+22.4</td><td class="num">-114.0</td><td class="num">+136.4</td></tr>
+        <tr><td>25-07</td><td>318.4</td><td>290.4</td><td class="up">+28.0</td><td class="num">-111.0</td><td class="num">+139.0</td></tr>
+        <tr><td>25-08</td><td>329.1</td><td>298.4</td><td class="up">+30.7</td><td class="num">-113.5</td><td class="num">+144.2</td></tr>
+        <tr><td>25-09</td><td>330.0</td><td>304.7</td><td class="up">+25.2</td><td class="num">-115.0</td><td class="num">+140.2</td></tr>
+        <tr class="hl"><td>25-10</td><td>335.5</td><td>312.4</td><td class="up">+23.1</td><td class="num">-118.5</td><td class="num">+141.6</td></tr>
+      </table>
+      <p class="small dim">INSG 口径月度过剩稳定在 +22~31kt（年化 ≈ +300kt，与 CRU 2025 的 +316kt 互验）；中国月度缺口 -111~-119kt 与中国以外盈余 +136~+144kt  mirror——同一结构事实的第三家口径。</p>
+    </div>
+  </div>
+  <div class="card" id="bl-diy" style="margin-top:12px">
+    <h3>⑦ 自己动手：每月平衡表填数 SOP</h3>
+    <div class="grid g3">
+      <div>
+        <h4>月度节奏（中国时间）</h4>
+        <ul class="small">
+          <li><b>7-10 日</b>：Mysteel 月度产量（精炼镍/NPI/硫酸镍/不锈钢 33 家）→ 填产量列；cnfeol 高镍铁/低镍铁分品位交叉验证</li>
+          <li><b>18-20 日</b>：海关进出口（未锻轧镍/镍铁/中间品/镍矿/不锈钢分品种）→ 填进出口列</li>
+          <li><b>每周五</b>：社库/仓单/佛锡库存 → 库存列（表消倒算的前提）</li>
+          <li><b>月末</b>：印尼侧——钢联印尼 NPI/冰镍/MHP 产量 + INSG 月报（滞后 6-8 周）→ 全球层</li>
+        </ul>
+      </div>
+      <div>
+        <h4>取数优先级（本机通道）</h4>
+        <ul class="small">
+          <li>产量/库存/成本：<b>mysteel_mirror.db</b>（NI/SS/niMaterial 25 图，日更至 10-16）</li>
+          <li>价格/升贴水/矿价：<b>smm_mirror.db</b> hq（镍系 70 条日更）+ <b>cnfeol_mirror.db</b>（D镍系 46 + A铬系 62）</li>
+          <li>海关/平衡表历史：<b>表01_镍产业数据.xlsx</b> 五张平衡表（月度至 2026-08）</li>
+          <li>全球展望/成本：<b>CRU 9 月版数据包</b> + 成本 Q3 包（本面板已录入核心表）</li>
+        </ul>
+      </div>
+      <div>
+        <h4>验证三问（填完必查）</h4>
+        <ul class="small">
+          <li>① 表消×30 天 ≈ 库销比×库存？（SS 表自校验）</li>
+          <li>② 平衡方向与当月库存变化方向一致？（背离=口径错了）</li>
+          <li>③ 我的合计与 CRU/INSG/BH 三家方向一致？（三家全反=先怀疑自己的进出口金属吨换算）</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="card" id="bl-tpl" style="margin-top:12px">
+    <h3>空模板：电镍月度平衡表（抄此结构自建，每月 20 日海关数据出齐后填一行）</h3>
+    <div class="scrollx">
+    <table class="btable mini">
+      <tr><th>月份</th><th>产量<br>①</th><th>进口<br>②</th><th>出口<br>③</th><th>净进口<br>④=②−③</th><th>国储<br>⑤</th><th>期末库存<br>⑥</th><th>库存变化<br>⑦=⑥−⑥<sub>上</sub></th><th>表观消费<br>⑧=①+④+⑤−⑦</th><th>验证</th></tr>
+      <tr><td>26-08（示例）</td><td>28,867</td><td>—</td><td>—</td><td>14,346</td><td>0</td><td>130,292</td><td>−1,447</td><td>44,660</td><td>✓ 方向与去库一致</td></tr>
+      <tr><td>26-09</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+      <tr><td>26-10</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+      <tr><td>26-11</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+      <tr><td>26-12</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+    </table>
+    </div>
+    <ul class="small">
+      <li><b>取数日历</b>：① 产量=7-10 日 Mysteel 月度（镜像 niYield 系）；②③=18-20 日海关（未锻轧镍，表01 历史口径对照）；⑥=每周五社库+仓单外推月末值；⑤ 国储常态=0，有收储/放储公告才填。</li>
+      <li><b>填表顺序</b>：先 ①②③⑥ 四个实数 → 算 ④⑦ → 倒算 ⑧ → 用「验证三问」右侧卡自检。⑧ 异常跳动（环比 ±30%+）先查库存列再查进出口，最后才怀疑产量。</li>
+      <li><b>外推预估</b>：海关数据未出时，⑧ 可用近 3 月均值+季节系数预估占位（表01 的 09 月起就是这么干的），实数出来后回填覆盖。</li>
+      <li><b>升级路径</b>：电镍表跑顺后，按同一范式复制 NPI 表（⑧ 换成「300 系耗 NPI」，注意 4 个平衡口径任选一个并固定）→ 再 SS 表（加库销比列）。三张表每月合计约 40 分钟。</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ============ 主要矛盾 ============ -->
+<div class="sec" id="s-contra">
+  <div class="subnav">
+    <a href="#ct-1">矛盾一</a><a href="#ct-2">矛盾二</a><a href="#ct-3">矛盾三</a><a href="#ct-4">矛盾四</a><a href="#ct-5">策略含义</a>
+  </div>
+  <div class="card">
+    <h3>当前主要矛盾（2026-10 视角，附最新读数坐标）</h3>
+    <div class="contra" id="ct-1">
+      <b class="ttl">矛盾一：印尼政策收紧托底 vs 基本面过剩压制（框架级）</b>
+      <ul>
+        <li>压制端：LME 库存 28.0 万吨（10-16）处年内高位区、沪镍 114,610 创年内新低（10-16）；INSG/CRU/BH 三家口径 2025 过剩 +274~316kt；精炼镍+中间品供应过剩格局未改</li>
+        <li>托底端：RKAB 2026 配额不再增加、ESDM 审核收紧（欠税/未复垦叫停）、HPM 基准价腰斩、战略矿产交易所 2027 元旦生效；CRU 已按此把 2026 平衡打到 +7kt、印尼 NPI -5%</li>
+        <li>裁判数据：CRU 剧本 26Q2-Q3 转短缺去库 vs 现实 LME 9/25 还在创新高——<b>未来两季度库存方向决定政策叙事估值</b></li>
+        <li>跟踪坐标：ESDM 批文节奏、HPM 执行价 vs 内贸火法 1.6% 到港 57.1 美元（10-16）、印尼内贸矿升水、WBN 复产爬坡</li>
+        <li><b>证伪条件</b>：2026Q4-2027Q1 LME+沪镍库存若连续两月去化且印尼内贸矿升水走阔 → 政策托底被数据证实，框架翻多；反之 LME 库存再创新高（>29 万吨）→ 托底叙事失效，回到 CRU p50 成本定价（≈15,600 美元）</li>
+      </ul>
+    </div>
+    <div class="contra" id="ct-2">
+      <b class="ttl">矛盾二：中间品放量 vs 电池需求被铁锂挤压</b>
+      <ul>
+        <li>华友/格林美/力勤/Harita 印尼 HPAL 产能 2026-2027 继续投放（CRU：HPAL 2027E 686kt，+72%）；MHP 系数 77.5%（10-16，单日 -2.5pp）是过剩程度的直接读数</li>
+        <li>需求端三元份额持续被磷酸铁锂挤压：9月产量份额 17.4%、装车份额仅 14.0%；硫酸镍开工率 62%</li>
+        <li>对冲信号：<b>印尼中间品产量已自见顶回落</b>（7 月 22.89 → 9 月 20.34 万金属吨，10 月累计同比 -10.6%）——过剩自我修正已经开始</li>
+        <li>跟踪坐标：MHP/高冰镍折扣系数、硫酸镍 28,375 vs 纯镍折镍价、三元装车占比</li>
+        <li><b>证伪条件</b>：MHP 系数回升至 85% 以上 + 印尼中间品产量止跌（连续 2 月环比正）→ 过剩自我修正证伪，供应压力重来；若三元装车份额回到 17%+ 并稳住 → 需求挤压逻辑重估</li>
+      </ul>
+    </div>
+    <div class="contra mid" id="ct-3">
+      <b class="ttl">矛盾三：NPI 平衡 = 不锈钢利润 vs 高冰镍转化窗口</b>
+      <ul>
+        <li>NPI 两条出路：进不锈钢（看 300 系排产与钢厂利润）或转高冰镍（看硫酸镍价差是否覆盖转化成本）；CRU 判断高冰镍 2026 冲顶 424kt 后持续萎缩</li>
+        <li>不锈钢侧：SS 13,215 贴近 304 冷轧成本 13,304（10-16）——钢厂利润逼近零轴；NPI 指数 1,024.8 元/镍点周度阴跌；中印 NPI 平衡 3-6 月连续缺口 -2.4~-3.1 万金属吨/月、镍铁厂库存仅 3,500 金属吨——<b>NPI 链库存最薄、弹性最大</b></li>
+        <li>跟踪坐标：NPI 中印双报价、304 成本利润日度、镍铁库存 0.35 万金属吨、印尼 NPI 产量月度（9月 14.46 万→10月预估 14.9 万金属吨）</li>
+        <li><b>证伪条件</b>：304 利润转正并维持两周以上 + 300 系排产环比增 → NPI 缺口兑现为涨价链；若印尼 NPI 月产量重回 15 万金属吨以上 → 缺口逻辑作废，NPI 回过剩定价</li>
+      </ul>
+    </div>
+    <div class="contra mid" id="ct-4">
+      <b class="ttl">矛盾四：菲律宾矿补缺的上限</b>
+      <ul>
+        <li>印尼 1-7 月自菲进口 1140 万吨 (+67%)，菲矿成为印尼矿缺口的边际补充；CRU 判断菲律宾产量 2026E 见顶 498kt 后趋势回落至 406kt（2031E）——补缺上限已被写进长期平衡</li>
+        <li>跟踪坐标：菲矿 1.5% FOB 45.5 / CIF 60.5 美元（10-16）、海运费 Zambales→连云港 13.4 美元（10-08）、印尼内贸矿升水</li>
+        <li><b>证伪条件</b>：菲律宾雨季出口同比 &gt;+30% 或印尼新增配额放行 → 矿端约束解除；反之菲矿 FOB 升破 55 美元 → 矿瓶颈继续是定价主线</li>
+      </ul>
+    </div>
+    <div class="contra mid" id="ct-5">
+      <b class="ttl">策略含义</b>
+      <ul>
+        <li>镍：基本面偏利空 × 印尼政策干预偏利多 → 震荡格局，单边观望；成本量化锚=CRU p50-p75（15,600-17,000 美元），现价已在区间下沿</li>
+        <li>不锈钢：跟随镍价区间震荡；<b>镍/不锈钢比价做缩</b>可继续关注（NI/SS 8.81 处低位区但 NPI 链库存最薄——比值弹性在镍侧政策，不在钢侧）</li>
+        <li>平衡表观点：乐观情景（CRU：2026 +7kt、26H2 去库）与悲观情景（BH：+350kt）的分歧=印尼 RKAB 执行率；月度跟踪印尼 NPI 产量即可裁决</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- ============ 数据采集矩阵 ============ -->
+<div class="sec" id="s-collect">
+  <div class="card">
+    <h3>分环节数据源矩阵（2026-10-19 复核：读数日期=本面板实测）</h3>
+    <table>
+      <tr><th>环节</th><th>主力源</th><th>辅助源</th><th>新鲜度</th><th>缺口/风险</th></tr>
+      <tr><td>镍矿（价/进口/港存）</td><td><span class="tag t-ni">SMM hq</span>分品位 FOB/CIF/内贸 25条 日度 + <span class="tag t-ni">cnfeol</span>D镍系 46 指标</td><td>B01 中国平衡（矿）月度</td><td>SMM 10-16；cnfeol 10-08</td><td>cnfeol 不在日更范围（见行动项②）</td></tr>
+      <tr><td>NPI/镍铁</td><td><span class="tag t-ni">SMM hq</span>分品位报价 9 条日度 + <span class="tag t-ni">cnfeol</span>产量/开工/进口</td><td>B01 中国平衡（NPI）；ND 汇总-镍</td><td>SMM 10-16；cnfeol 月度至 9月</td><td>Mysteel 匿名通道无 NPI 产量</td></tr>
+      <tr><td>中间品 MHP/高冰镍</td><td><span class="tag t-ni">Mysteel niMaterial</span>产量/进口/成本 9 图 + <span class="tag t-ni">SMM hq</span>FOB价/系数日度 + ND 中间品汇总</td><td>海关月度</td><td>价格 10-16；量月度至 8/9月</td><td>长历史价格靠海关/全站包</td></tr>
+      <tr><td>精炼镍</td><td><span class="tag t-ni">Mysteel NI</span>产量/表消/LME库存/进口盈亏 8 图 + <span class="tag t-ni">SMM hq</span>现货升贴水</td><td>B01 中国平衡（电镍）；cnfeol 电解镍/金川价</td><td>日度至 10-16</td><td><span class="tag t-bad">镍豆/精炼镍社库停 8-14 待排查</span></td></tr>
+      <tr><td>硫酸镍</td><td>SMM hq 电池/电镀级价日度 + Mysteel 产量/成本</td><td>cnfeol cv:889（28,000，10-09）</td><td>日度至 10-16</td><td>覆盖好</td></tr>
+      <tr><td class="ss">不锈钢</td><td><span class="tag t-ss">Mysteel SS</span>粗钢产量/排产/成本利润/佛锡库存 8 图（唯一已日更）+ ND 价差/SS/指标三表</td><td>B01 中国平衡SS；cnfeol 铬系 62 指标</td><td>日度至 10-16</td><td><span class="tag t-bad">百川 320 条不锈钢现货价 0 落地</span>；SS表库存/表消列 5 月起停填</td></tr>
+      <tr><td class="ss">铬系辅料</td><td><span class="tag t-ss">cnfeol A铬系</span>62 指标（矿价分国别/铬铁分系别/钢招/产量/开工/成本）</td><td>zhiji ID00258454（周报图口径）</td><td>10-08~09</td><td>日更未覆盖；宝钢/酒钢钢招停更</td></tr>
+      <tr><td>全球平衡/展望</td><td>CRU 9月版数据包（52表）+ B01 全球平衡 BH/INSG/CRU 电镍</td><td>本面板「全球供需展望」页已录入核心表</td><td>CRU 年度；INSG 断更 25-10</td><td>BH 与 CRU 2026 方向相反——双情景使用</td></tr>
+      <tr><td>成本曲线</td><td>CRU Industry Costs 2026Q3（61 operation 联赛表）</td><td>镍季度生产报告.xlsx（2025 版全口径曲线）</td><td>季度</td><td>两版口径不同，勿混用分位数</td></tr>
+      <tr><td>财报记者量</td><td>caibao-hub / 财报汇总\镍\（26Q2 已入）</td><td>镍季度生产报告.xlsx</td><td>季度</td><td>Harita/TBP、NAC 骨架待回填</td></tr>
+    </table>
+    <h4>日更任务现状（2026-10-19 复核）</h4>
+    <table>
+      <tr><th>任务</th><th>时间</th><th>覆盖</th><th>状态</th></tr>
+      <tr><td>MysteelMirrorDailySync</td><td>09:37</td><td>NI 8 图 + SS 8 图 + niMaterial 9 图</td><td><span class="tag t-ok">健康</span>读数至 10-16</td></tr>
+      <tr><td>SmmHqDailySync</td><td>18:13</td><td>镍系 70 条（30 天滚动累积）</td><td><span class="tag t-ok">已恢复</span>读数至 10-16</td></tr>
+      <tr><td>CnfeolMirrorDailySync</td><td>20:11</td><td><b>只跑 --cls 硅</b></td><td><span class="tag t-bad">镍/铬停在 10-08~09 快照</span></td></tr>
+      <tr><td>BaichuanMirrorDailySync</td><td>17:41</td><td>镍 245 条规划/74 落地</td><td><span class="tag t-bad">10-08 起设备绑定被拒，停摆</span></td></tr>
+      <tr><td>WebMirrorDailySync</td><td>20:41</td><td>镍/不锈钢期现基差三件套</td><td><span class="tag t-warn">注意</span>10-15/16 sync_error（网络）</td></tr>
+    </table>
+    <h4>三个行动项（按优先级）</h4>
+    <ul>
+      <li>① <b>百川设备授权恢复</b>（找客户经理重新授权）= 解锁不锈钢现货价格矩阵 320 条的唯一钥匙</li>
+      <li>② <b>cnfeol 日更扩容</b>：把 sync --cls 硅 扩到 D镍系/A铬系，镍系+铬系即可日更</li>
+      <li>③ 小修：Mysteel 镍豆/精炼镍社库停更排查（8-14 起）；B01 SS 表库存/表消列恢复（Mysteel 新口径映射）；web_mirror 网络报错观察自愈</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ============ 跟踪日历 ============ -->
+<div class="sec" id="s-cal">
+  <div class="grid g2">
+    <div class="card">
+      <h3>财报披露节奏（季报入库触发点）</h3>
+      <table>
+        <tr><th>公司</th><th>节奏</th></tr>
+        <tr><td>Nornickel / Vale / Anglo</td><td>季后 3-4 周（1/4/7/10 月下旬）</td></tr>
+        <tr><td>Glencore</td><td>4月底 / 7-29(H1) / 10月底 / 1月底</td></tr>
+        <tr><td>Eramet</td><td>4月下旬 / 7月下旬半年报 / 10月下旬 / 2月年报</td></tr>
+        <tr><td>Nickel Industries</td><td>季末次月 29-31 日（ASX）</td></tr>
+        <tr><td>Merdeka (MBMA)</td><td>季后约 5 周</td></tr>
+        <tr><td>Antam / Harita (TBP)</td><td>IDX 季后约 1 个月</td></tr>
+        <tr><td>住友金属矿山</td><td>财年止3月：8月初/11月中/2月上/5月中</td></tr>
+        <tr><td>华友/中伟/格林美</td><td>A股年报+中报（4月/8月），季报无产量</td></tr>
+        <tr><td>力勤资源</td><td>港股年报+中报（3-4月/8月下旬）</td></tr>
+      </table>
+      <p class="small dim">守望机制：CaibaoWatch 每周一 09:11 扫「上季有数当季空」弹窗提醒；披露日历三档状态与真库联动。<b>近期节点：10 月下旬 Nornickel/Vale/Anglo/Eramet/Glencore 26Q3 密集披露；10-29/31 Nickel Industries 季报。</b></p>
+    </div>
+    <div class="card">
+      <h3>高频跟踪清单（周/日频）</h3>
+      <ul>
+        <li><b>日度</b>：LME 镍库存/升贴水、NPI 中印双报价（SMM 9 条分品位）、金川/俄镍升贴水、304 成本利润、菲矿 FOB/CIF、硫酸镍价、MHP/高冰镍 FOB 与系数</li>
+        <li><b>周度</b>：佛山+无锡不锈钢库存、镍社库（⚠18家停更中，27家口径 ND 仍可跟踪）、镍矿港口库存、不锈钢仓单、铬矿港存</li>
+        <li><b>月度</b>：印尼 NPI/中间品产量（钢联）、中国精炼镍/硫酸镍产量、300 系排产、镍矿/中间品进口、印尼 HPM 执行、高碳铬铁产量/开工、<b>平衡表五列填数（见平衡表工坊 SOP）</b></li>
+        <li><b>季度</b>：CRU 展望/成本包版本更替、财报记者量入库</li>
+        <li><b>事件</b>：ESDM 配额批文、印尼战略矿产交易所进展（2027 元旦）、WBN 爬坡、华飞检修、ENC+SLNC 投产、NPI 转高冰镍窗口</li>
+      </ul>
+      <h4>口径红线（入库前必读）</h4>
+      <ul>
+        <li>PTVI 按 80% offtake；NIC RKEF/HNC 为 100% 项目基准（权益仅 80%/10%）</li>
+        <li>Eramet WBN 100% 口径 ≠ 集团 38.7% 权益口径；华友 28.7 万吨为 100% 项目口径</li>
+        <li>Nickel Asia 为矿石万湿吨口径，总计勿加；IGO 仅补历史（Nova 2026Q4 结束开采）</li>
+        <li>升贴水对合约口径随换月跳动（金川 +4,750 为对 2611 合约）；周报图与镜像库数值差异先查口径再查数据</li>
+        <li>平衡表四家口径分工：中国月度=B01 五表；全球年度=CRU（展望）/BH（永安）/INSG（月度对照）——引用平衡数必带口径名</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<div class="foot">
+  面板数据底稿：镍与不锈钢周报 20261018 运行报告 · 表01_镍产业数据.xlsx（五张中国平衡表+全球平衡 BH/INSG/CRU，月度至 2026-08）· 镍数据.xlsx（中间品汇总/价差/SS/指标）· CRU Nickel Market Outlook 2026-09 数据包 · CRU Nickel Industry Costs 2026Q3 · 全球镍企季度产量梳理.xlsx（26Q2）<br>
+  镜像库实测读数：Mysteel（至 10-16）· SMM hq（至 10-16）· cnfeol（至 10-08~09）· 行情复盘价格锚=新浪 NI0/SS0 主力连续日线 · 图表数据源检索：镍不锈钢\_图表数据源检索表_20261018.md<br>
+  生成：Kimi Code · 2026-10-19 · 本面板为静态快照，数据时效以各镜像库/工作簿为准
+</div>
+
+<button id="topBtn" title="回到顶部">↑</button>
+<script>
+// 顶部 tab 切换
+function showTab(id){
+  document.querySelectorAll('.tab').forEach(x => x.classList.remove('on'));
+  document.querySelectorAll('.sec').forEach(x => x.classList.remove('on'));
+  const t = document.querySelector('.tab[data-s="' + id + '"]');
+  if (t) t.classList.add('on');
+  const s = document.getElementById('s-' + id);
+  if (s) s.classList.add('on');
+}
+document.querySelectorAll('.tab').forEach(t => t.onclick = () => showTab(t.dataset.s));
+// subnav 内锚点：跨板块跳转时先切 tab 再滚动
+document.querySelectorAll('.subnav a').forEach(a => a.addEventListener('click', e => {
+  const tab = a.dataset.tab;
+  if (tab) { e.preventDefault(); showTab(tab); window.scrollTo({top:0, behavior:'smooth'}); return; }
+  const href = a.getAttribute('href');
+  if (href && href.startsWith('#') && href.length > 1) {
+    const el = document.querySelector(href);
+    if (el) {
+      const sec = el.closest('.sec');
+      if (sec && !sec.classList.contains('on')) showTab(sec.id.slice(2));
+      e.preventDefault();
+      setTimeout(() => el.scrollIntoView({behavior:'smooth'}), 30);
+    }
+  }
+}));
+// 回到顶部
+const topBtn = document.getElementById('topBtn');
+window.addEventListener('scroll', () => { topBtn.style.display = window.scrollY > 600 ? 'block' : 'none'; });
+topBtn.onclick = () => window.scrollTo({top:0, behavior:'smooth'});
+</script>
+</body>
+</html>
