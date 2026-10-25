@@ -37,3 +37,21 @@ def apply_freshness(build):
         total = {date: cold[date] + hot[date] for date in sorted(set(cold) & set(hot))}
         build.put("inventory_ss300", build.direct_chart(total, "300系冷轧+热轧库存", limit=500),
                   {"type": "derived", "formula": "ID01706925+ID01706924", "unit": "吨"})
+
+    if build.series.get("SHFE_STOCK"):
+        lme = build.zhiji("a10018390")
+        shfe = build.series["SHFE_STOCK"]
+        history = {}
+        for date in sorted(lme):
+            if date < "2022-01-01":
+                continue
+            shfe_dates = [day for day in shfe if day <= date and (dt.date.fromisoformat(date) - dt.date.fromisoformat(day)).days <= 7]
+            social_dates = [day for day in social if day <= date and (dt.date.fromisoformat(date) - dt.date.fromisoformat(day)).days <= 7]
+            if shfe_dates and social_dates:
+                history[date] = lme[date] + shfe[max(shfe_dates)] + social[max(social_dates)]
+        if history:
+            build.series["GLOBAL_STOCK"] = history
+            build.put("overview_global_stock", build.direct_chart(history, "2022年以来LME+SHFE仓单+SMM社库"),
+                      {"type": "derived", "formula": "2022年以来LME+SHFE仓单+SMM社库（周度值平推）"})
+            latest = max(history)
+            build.latest["global_stock"] = [latest, history[latest]]

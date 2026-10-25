@@ -487,6 +487,10 @@ class Build:
         lme = self.latest["lme_stock"]
         if all(item[1] is not None for item in [shfe, social, lme]):
             self.latest["global_stock"] = [lme[0], shfe[1] + social[1] + lme[1]]
+        if self.series.get("GLOBAL_STOCK"):
+            self.put("overview_global_stock", self.direct_chart(self.series["GLOBAL_STOCK"], "2022年以来LME+SHFE仓单+SMM社库"),
+                     {"type": "derived", "formula": "2022年以来LME+SHFE仓单+SMM社库（周度值平推）"})
+            return
         try:
             lme_points = next(iter(self.mirror("niStockLmeSum").values()))
             points = {date: value + (shfe[1] or 0) + (social[1] or 0) for date, value in lme_points.items()}
