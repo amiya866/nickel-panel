@@ -181,6 +181,16 @@ class Build:
             "label": name, "data": [value for _, value in items], "borderColor": COLORS[0], "borderWidth": 1.7,
         }]}
 
+    def seasonal_chart(self, points, name):
+        years = sorted({int(date[:4]) for date in points})
+        labels = sorted({date[5:] for date in points})
+        datasets = []
+        for i, year in enumerate(years):
+            lookup = {date[5:]: value for date, value in points.items() if int(date[:4]) == year}
+            datasets.append({"label": f"{year}年", "data": [lookup.get(label) for label in labels],
+                             "borderColor": COLORS[i % len(COLORS)], "borderWidth": 1.6})
+        return {"labels": labels, "datasets": datasets}
+
     def ratio(self, left, right, name):
         common = sorted(set(left) & set(right))
         points = {date: left[date] / right[date] for date in common if right[date]}
@@ -289,13 +299,50 @@ class Build:
             ("cost_chrome", "ID00258454", "南非铬矿36-38%Cr"),
             ("inventory_ss_cold", "ID01706925", "不锈钢300系冷轧库存"),
             ("inventory_ss_hot", "ID01706924", "不锈钢300系热轧库存"),
+            ("inventory_shfe", "ID00188285", "SHFE镍期货库存"),
+            ("inventory_lme", "a10018390", "LME镍总库存"),
         ]
         for key, indicator, name in direct:
             try:
                 points = self.zhiji(indicator)
+                if key == "inventory_shfe":
+                    self.series["SHFE_STOCK"] = points
                 self.put(key, self.direct_chart(points, name, limit=500), {"type": "zhiji", "indicator": indicator})
             except Exception as error:
                 self.warn(f"直连 {key}", error)
+        try:
+            points = self.zhiji("ID00188192")
+            self.put("npi_price", self.seasonal_chart(points, "江苏7%-13%NPI到厂价"),
+                     {"type": "zhiji", "indicator": "ID00188192", "unit": "元/镍点"})
+            latest = max(points)
+            self.latest["npi_price"] = [latest, points[latest]]
+            if "NI" in self.series:
+                self.put("ratio_npi_refined", self.ratio({date: value * 100 for date, value in points.items()},
+                                                          self.series["NI"], "镍铁折镍价/沪镍"),
+                         {"type": "derived", "formula": "Mysteel江苏NPI元/镍点*100 / SHFE NI"})
+        except Exception as error:
+            self.warn("NPI价格直连", error)
+        try:
+            price = self.zhiji("ID00259785")
+            cost = self.zhiji("a10018694")
+            dates = sorted(set(price) & set(cost))[-500:]
+            self.put("cost_npi_profit", {"labels": dates, "datasets": [
+                {"label": "山东RKEF完全成本", "data": [cost[date] for date in dates], "borderColor": COLORS[1]},
+                {"label": "山东RKEF理论利润", "data": [price[date] - cost[date] for date in dates], "borderColor": COLORS[0]},
+            ]}, {"type": "derived", "formula": "Mysteel山东7%-13%到厂价-SMM山东RKEF完全成本", "unit": "元/镍点"})
+            self.latest["smelting_profit"] = [dates[-1], price[dates[-1]] - cost[dates[-1]]]
+        except Exception as error:
+            self.warn("NPI利润直连", error)
+        try:
+            region_ids = [("美洲", "a10018417"), ("欧洲", "a10018426"), ("亚洲", "a10018444")]
+            region_points = [(name, self.zhiji(indicator)) for name, indicator in region_ids]
+            labels = sorted({date for _, points in region_points for date in points})
+            datasets = [{"label": name, "data": [points.get(date) for date in labels], "borderColor": COLORS[i]}
+                        for i, (name, points) in enumerate(region_points)]
+            self.put("lme_region", {"labels": labels, "datasets": datasets},
+                     {"type": "zhiji", "indicators": [item[1] for item in region_ids], "unit": "吨"})
+        except Exception as error:
+            self.warn("LME分洲库存直连", error)
         premium_parts = [self.charts[key] for key in ["premium_russia", "premium_jinchuan", "premium_bean"]]
         premium_labels = sorted({date for chart in premium_parts for date in chart["labels"]})
         premium_datasets = []
@@ -314,10 +361,10 @@ class Build:
             except Exception as error:
                 self.warn(f"镜像 {key}", error)
         try:
-            self.put("cost_chromium", self.direct_chart(self.cnfeol("cv:282"), "高碳铬铁 内蒙古", limit=1000),
-                     {"type": "cnfeol-mirror", "indicator": "cv:282"})
+            self.put("cost_chromium", self.direct_chart(self.zhiji("ID00258657"), "高碳铬铁 内蒙古", limit=1000),
+                     {"type": "zhiji", "indicator": "ID00258657"})
         except Exception as error:
-            self.warn("铬铁镜像", error)
+            self.warn("铬铁直连", error)
         try:
             values = next(iter(self.mirror("niStockLmeSum").values()))
             date = max(values)
@@ -425,6 +472,9 @@ class Build:
 
     def load_global_stock(self):
         shfe = self.seasonal_latest("inventory_shfe")
+        if self.series.get("SHFE_STOCK"):
+            latest = max(self.series["SHFE_STOCK"])
+            shfe = [latest, self.series["SHFE_STOCK"][latest]]
         social = self.latest["social_stock"]
         lme = self.latest["lme_stock"]
         if all(item[1] is not None for item in [shfe, social, lme]):
