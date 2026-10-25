@@ -196,6 +196,15 @@ class Build:
                     chart, records = extractors[config["wb"]].extract(config["sheet"], config["pos"], config)
                     if not chart["datasets"]:
                         raise RuntimeError("原生图无有效系列")
+                    if chart["labels"] and all(re.fullmatch(r"第\d+周", str(label)) for label in chart["labels"]):
+                        order = sorted(range(len(chart["labels"])), key=lambda i: int(re.search(r"\d+", chart["labels"][i]).group()))
+                        chart["labels"] = [chart["labels"][i] for i in order]
+                        for dataset in chart["datasets"]:
+                            dataset["data"] = [dataset["data"][i] for i in order]
+                    if key == "inventory_ss300":
+                        for dataset in chart["datasets"]:
+                            if dataset["label"] == "系列":
+                                dataset["label"] = "2024年"
                     self.put(key, chart, {"type": "excel-native", "slot": slot, "workbook": config["wb"],
                                           "sheet": config["sheet"], "position": config["pos"],
                                           "unit": config.get("unit"), "valueScale": config.get("value_scale", 1)})
