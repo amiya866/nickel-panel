@@ -212,6 +212,13 @@ class Build:
                         chart["labels"] = [chart["labels"][i] for i in order]
                         for dataset in chart["datasets"]:
                             dataset["data"] = [dataset["data"][i] for i in order]
+                    if (chart["labels"] and all(re.fullmatch(r"\d{1,2}(?:-\d{2})?", str(label)) for label in chart["labels"])
+                            and all(sum(value is not None for value in dataset["data"]) <= 12 for dataset in chart["datasets"])):
+                        source_labels = chart["labels"][:]
+                        chart["labels"] = [f"{month:02d}" for month in range(1, 13)]
+                        for dataset in chart["datasets"]:
+                            monthly_values = {int(str(label)[:2]): value for label, value in zip(source_labels, dataset["data"]) if value is not None}
+                            dataset["data"] = [monthly_values.get(month) for month in range(1, 13)]
                     if key == "inventory_ss300":
                         for dataset in chart["datasets"]:
                             if dataset["label"] == "系列":
