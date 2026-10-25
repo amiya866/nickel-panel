@@ -13,6 +13,7 @@ import xlrd
 from openpyxl import load_workbook
 
 from excel_charts import COLORS, ChartExtractor, empty_chart, number
+from freshness_overrides import apply_freshness
 
 ROOT = Path(__file__).resolve().parents[1]
 NIW = Path(r"D:/拷贝文件/E/永安/周报数据更新/图表格式(1)/锡周报20260709_试跑/镍不锈钢")
@@ -694,7 +695,8 @@ def main():
     build = Build(offline=args.offline)
     steps = [
         ("Excel原生图", build.load_bindings), ("行情", build.load_market), ("直连与镜像", build.load_direct),
-        ("月间结构", build.load_curves), ("成本利润", build.load_cost_profit), ("全球库存", build.load_global_stock),
+        ("月间结构", build.load_curves), ("成本利润", build.load_cost_profit),
+        ("进出口与库存补充", lambda: apply_freshness(build)), ("全球库存", build.load_global_stock),
     ]
     for name, function in steps:
         try:

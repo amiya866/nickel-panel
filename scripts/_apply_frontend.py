@@ -60,10 +60,10 @@ warehouse = '<div class="card wide"><h3>交易所与不锈钢库存变化</h3><d
 parts.append(section("inventory", "库存", "交易所、社会库存与不锈钢库存", '<div class="grid">' + "".join([
     card("SHFE 镍库存 / 仓单", "inventory_shfe", "吨 · 日度或周度"),
     card("LME 镍库存", "inventory_lme", "吨 · 日度"),
-    card("Mysteel 国内镍社会库存", "inventory_social", "吨 · 周度"),
-    card("镍板库存", "inventory_plate", "吨 · 周度"),
-    card("镍豆库存", "inventory_bean", "吨 · 周度 · 停更时明确标注"),
-    card("300 系不锈钢库存：总量", "inventory_ss300", "吨 · 周度"),
+    card("SMM 纯镍社会库存（镍板+镍豆）", "inventory_social", "吨 · 周度"),
+    card("SMM 国内镍板库存", "inventory_plate", "吨 · 周度"),
+    card("SMM 国内镍豆库存", "inventory_bean", "吨 · 周度"),
+    card("300 系不锈钢库存：总量（冷轧+热轧）", "inventory_ss300", "吨 · 周度"),
     card("300 系不锈钢库存：冷轧", "inventory_ss_cold", "吨 · 日度"),
     card("300 系不锈钢库存：热轧", "inventory_ss_hot", "吨 · 日度"),
 ]) + warehouse + "</div>"))
