@@ -278,6 +278,8 @@ class Build:
             ("premium_jinchuan", "s20019092", "金川镍升贴水"),
             ("premium_bean", "ID00302595", "镍豆升贴水"),
             ("cost_chrome", "ID00258454", "南非铬矿36-38%Cr"),
+            ("inventory_ss_cold", "ID01706925", "不锈钢300系冷轧库存"),
+            ("inventory_ss_hot", "ID01706924", "不锈钢300系热轧库存"),
         ]
         for key, indicator, name in direct:
             try:
